@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🛡️ CyberOps: Telegram Scraper (CyberOps.TSI)
+# 🛡️ CyberOps: Telegram Scraper of Investigation (TSI)
 
 <p align="center">
   <b>Telegram Scraper for Investigation (TSI) tool for collecting evidence by scraping the whole conversation into one output.</b>
@@ -39,9 +39,11 @@
 
 ### 1. Clone & Set Up
 ```bash
-git clone [https://github.com/akmaltaufik123/cyberops.tsi.git](https://github.com/akmaltaufik123/cyberops.tsi.git)
+git clone https://github.com/akmaltaufik123/cyberops.tsi.git
 cd cyberops.tsi
 
 # Create and activate virtual environment
 python3 -m venv venv
 source venv/bin/activate
+
+run python3 cyberops.py
