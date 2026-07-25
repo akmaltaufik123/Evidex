@@ -19,7 +19,7 @@
 
 ## 🔍 Overview
 
-**CyberOps** is a powerful Python-based investigation suite engineered for digital forensics, incident response (DFIR), and lawful public evidence collection. Utilizing the asynchronous **Telethon** framework, it extracts complete chat histories, text logs, and media assets from Telegram channels and groups into structured, timestamped archives with live terminal monitoring.
+**CyberOps** is a powerful Python-based investigation suite engineered for lawful public evidence collection. Utilizing the asynchronous **Telethon** framework, it extracts complete chat histories, text logs, and media assets from Telegram channels and groups into structured, timestamped archives with live terminal monitoring.
 
 ---
 
