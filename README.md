@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🛡️ CyberOps: Telegram Scraper of Investigation (TSI)
+# 🛡️ CyberOps: Telegram Scraper for Investigation (TSI)
 
 <p align="center">
   <b>Telegram Scraper for Investigation (TSI) tool for collecting evidence by scraping the whole conversation into one output.</b>
