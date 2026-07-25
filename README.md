@@ -1,9 +1,9 @@
 <div align="center">
 
-# 🛡️ CyberOps Investigation Suite (CyberOps.TSI)
+# 🛡️ CyberOps: Telegram Scraper (CyberOps.TSI)
 
 <p align="center">
-  <b>Advanced Telegram Scraper & Digital Forensics Toolkit</b>
+  <b>Telegram Scraper for Investigation (TSI) tool for collecting evidence by scraping the whole conversation into one output.</b>
 </p>
 
 <p align="center">
