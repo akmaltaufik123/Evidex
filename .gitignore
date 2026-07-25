@@ -1,0 +1,6 @@
+venv/
+*.session
+*.session-journal
+CyberOps_*
+__pycache__/
+.DS_Store
