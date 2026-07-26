@@ -1,6 +1,8 @@
 <div align="center">
+<img 
+src="https://cdn.phototourl.com/free/2026-07-26-fef8d710-c647-4e3c-849d-7256654cc536.jpg"
 
-# 🛡️ CyberOps: Telegram Scraper for Investigation (TSI)
+# CyberOps: Telegram Scraper for Investigation (TSI)
 
 <p align="center">
   <b>Telegram Scraper for Investigation (TSI) tool for collecting evidence by scraping the whole conversation into one output.</b>
