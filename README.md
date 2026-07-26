@@ -49,13 +49,3 @@ python3 -m venv venv
 source venv/bin/activate
 
 run python3 cyberops.py
-
----
-
-## 🎥 Proof of Concept (PoC)
-
-Click the preview below to watch the 59-second live demonstration of CyberOps:
-
-[![CyberOps Demo Preview](https://img.shields.io/badge/▶_Watch_CyberOps_PoC_Demo_(59s)-red?style=for-the-badge&logo=youtube)](https://github.com/akmaltaufik123/cyberops.tsi/raw/main/cyberopstsi_demo.mp4)
-
----
