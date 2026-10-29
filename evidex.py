@@ -8,10 +8,8 @@ import hashlib
 import json
 import os
 import re
-import ssl
 import shlex
 import sys
-import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -26,11 +24,7 @@ from telethon.errors import (
     PhoneCodeInvalidError,
     SessionPasswordNeededError,
 )
-from telethon.network.connection import (
-    ConnectionHttp,
-    ConnectionTcpFull,
-    ConnectionTcpObfuscated,
-)
+from telegram_connection import connect_client, check_connection
 from textual import on, work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -48,16 +42,9 @@ from textual.widgets import (
     Static,
 )
 
-__version__ = "2.1.1"
+__version__ = "2.2.0"
 APP_NAME = "EVIDEX"
 APP_SUBTITLE = "Evidence Extraction Tool"
-TRANSPORT_TIMEOUT_SECONDS = 8
-EXISTING_SESSION_TIMEOUT_SECONDS = 60
-TELEGRAM_TRANSPORTS = (
-    ("standard MTProto", ConnectionTcpFull),
-    ("obfuscated MTProto", ConnectionTcpObfuscated),
-    ("HTTP MTProto", ConnectionHttp),
-)
 BASE_DIR = Path(__file__).resolve().parent
 DEFAULT_EXPORT_DIR = Path(os.getenv("EVIDEX_EXPORT_DIR", "evidence_exports"))
 SESSION_DIR = Path(os.getenv("EVIDEX_SESSION_DIR", ".evidex_sessions"))
@@ -85,30 +72,6 @@ class ExtractionConfig:
     proxy: dict[str, Any] | None
     session_path: Path | None
 
-
-def connection_error_detail(error: Exception) -> str:
-    """Describe network failures without copying credential-bearing exception text."""
-    # Third-party/proxy exceptions may embed URLs, credentials or request data.
-    # Use fixed descriptions rather than attempting to redact arbitrary text.
-    if isinstance(error, TimeoutError):
-        message = "connection timed out (socket or attempt deadline)"
-    elif isinstance(error, ConnectionResetError):
-        message = "connection reset by peer"
-    elif isinstance(error, ConnectionRefusedError):
-        message = "connection refused"
-    elif isinstance(error, ssl.SSLError):
-        message = "TLS negotiation failed"
-        if error.reason == "WRONG_VERSION_NUMBER":
-            message += " (WRONG_VERSION_NUMBER)"
-    elif isinstance(error, ConnectionError):
-        message = "transport connection failed"
-    elif isinstance(error, OSError):
-        message = "network or session I/O failure"
-        if isinstance(error.errno, int):
-            message += f" (errno={error.errno})"
-    else:
-        message = "connection failed; exception text withheld for credential safety"
-    return f"{type(error).__name__}: {message}"
 
 
 def utc_now() -> datetime:
@@ -419,17 +382,14 @@ class EvidexApp(App[None]):
                 )
                 yield Label("Proxy URL (optional, masked)", classes="field-label")
                 yield Input(
-                    value=os.getenv(
-                        "EVIDEX_PROXY_URL",
-                        os.getenv("ALL_PROXY", ""),
-                    ),
+                    value=os.getenv("EVIDEX_PROXY_URL", ""),
                     placeholder="socks5://host:port or http://host:port",
                     password=True,
                     id="proxy-url",
                 )
                 yield Label("Existing Telegram session (optional)", classes="field-label")
                 yield Input(
-                    value=os.getenv("EVIDEX_SESSION_PATH", discover_local_session()),
+                    value=os.getenv("EVIDEX_SESSION_PATH", ""),
                     placeholder="Path to an existing .session file",
                     id="session-path",
                 )
@@ -866,94 +826,13 @@ class EvidexApp(App[None]):
             self._extraction_worker = None
 
     async def connect_telegram(
-        self,
-        config: ExtractionConfig,
-        session_path: Path,
+        self, config: ExtractionConfig, session_path: Path,
     ) -> TelegramClient:
-        """Try Telegram transports sequentially to handle protocol filtering."""
-        failures: list[str] = []
-        attempt_timeout = (
-            EXISTING_SESSION_TIMEOUT_SECONDS
-            if config.session_path is not None
-            else TRANSPORT_TIMEOUT_SECONDS
-        )
-        connection_retries = 5 if config.session_path is not None else 1
-
-        session_file = Path(
-            str(session_path) if str(session_path).endswith(".session")
-            else str(session_path) + ".session"
-        )
-        self.log_event(
-            f"Connection policy: session={'selected' if config.session_path else 'managed'}, "
-            f"session_file_present={session_file.is_file()}, "
-            f"connection_retries={connection_retries}, request_retries=1."
-        )
-        for transport_name, transport_class in TELEGRAM_TRANSPORTS:
-            candidate = TelegramClient(
-                str(session_path),
-                config.api_id,
-                config.api_hash,
-                connection=transport_class,
-                proxy=config.proxy,
-                timeout=10 if config.session_path is not None else 6,
-                request_retries=1,
-                connection_retries=connection_retries,
-                retry_delay=1,
-            )
-            connected = False
-            started = time.monotonic()
-            self._active_client = candidate
-            self.set_status(f"Connecting via {transport_name}…")
-            self.log_event(
-                f"Trying {transport_name} "
-                f"({attempt_timeout}s timeout)"
-                f"{' through configured proxy' if config.proxy else ''}."
-            )
-
-            self.log_event(
-                f"{transport_name} endpoint: dc={candidate.session.dc_id}, "
-                f"port={candidate.session.port}; "
-                f"socket_timeout={10 if config.session_path is not None else 6}s."
-            )
-            try:
-                await asyncio.wait_for(
-                    candidate.connect(),
-                    timeout=attempt_timeout,
-                )
-                if not candidate.is_connected():
-                    raise ConnectionError("transport did not connect")
-                connected = True
-                self.log_event(
-                    f"Transport connected via {transport_name}; account authorization pending."
-                )
-                return candidate
-            except asyncio.CancelledError:
-                raise
-            except ApiIdInvalidError:
-                raise
-            except Exception as error:
-                detail = (
-                    f"{transport_name}: {connection_error_detail(error)} "
-                    f"(elapsed={time.monotonic() - started:.1f}s, budget={attempt_timeout}s)"
-                )
-                failures.append(detail)
-                self.log_event(f"{detail}; trying the next transport.")
-            finally:
-                if not connected:
-                    try:
-                        await asyncio.wait_for(candidate.disconnect(), timeout=3)
-                    except Exception as error:
-                        self.log_event(
-                            f"{transport_name} cleanup: {connection_error_detail(error)}"
-                        )
-                    finally:
-                        self._active_client = None
-
-        self._active_client = None
-        attempted = ", ".join(name for name, _ in TELEGRAM_TRANSPORTS)
-        raise TimeoutError(
-            f"All Telegram transports failed ({attempted}). "
-            f"Diagnostics: {', '.join(failures)}."
+        """Both interfaces delegate to the same UI-independent connector."""
+        return await connect_client(
+            config.api_id, config.api_hash, session_path, proxy=config.proxy,
+            log=self.log_event, status=self.set_status,
+            active=lambda client: setattr(self, "_active_client", client),
         )
 
     async def authorize_client(self, client: TelegramClient, phone: str) -> None:
@@ -1012,12 +891,27 @@ class EvidexApp(App[None]):
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--web", action="store_true", help="Run the TUI in a localhost browser")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--web", action="store_true", help="Run the TUI in a localhost browser")
+    mode.add_argument("--check-connection", action="store_true", help="Test Telegram transport without a UI, login or saved session")
     parser.add_argument("--port", type=int, default=8000, help="Local browser port (default: 8000)")
     args = parser.parse_args(argv)
     if not 1 <= args.port <= 65535:
         parser.error("--port must be between 1 and 65535")
-    if args.web:
+    if args.check_connection:
+        import getpass
+        api_id = os.getenv("TELEGRAM_API_ID") or input("Telegram API ID: ").strip()
+        api_hash = os.getenv("TELEGRAM_API_HASH") or getpass.getpass("Telegram API hash: ").strip()
+        if not api_id.isdigit() or int(api_id) <= 0 or not api_hash:
+            parser.error("A positive API ID and non-empty API hash are required")
+        try:
+            asyncio.run(check_connection(int(api_id), api_hash))
+        except KeyboardInterrupt:
+            parser.exit(130, "Connection check cancelled.\n")
+        except Exception as error:
+            from telegram_connection import connection_error_detail
+            parser.exit(1, f"Connection check failed: {connection_error_detail(error)}\n")
+    elif args.web:
         try:
             from textual_serve.server import Server
         except ModuleNotFoundError as error:

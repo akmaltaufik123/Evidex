@@ -96,3 +96,12 @@
    and enter the absolute path to its `.session` file in EVIDEX. This reuses the
    authorized key and working Telegram data-center assignment. Never run two
    programs against the same session file at the same time.
+
+8. CONNECTION CHECK (NO LOGIN):
+           python3 evidex.py --check-connection
+   Enter your API ID and masked API hash. This uses a fresh in-memory session
+   with a direct connection, without touching saved sessions or logging in.
+   Terminal and browser extraction share telegram_connection.py.
+   Proxy and existing-session selection are explicit; ALL_PROXY and nearby
+   session files are no longer picked automatically.
+   Optional EVIDEX_CONNECT_TIMEOUT sets the attempt budget (1 to 300 seconds).

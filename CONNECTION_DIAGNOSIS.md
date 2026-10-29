@@ -1,73 +1,51 @@
-# Telegram connection investigation
+# Telegram connection architecture (2.2.0)
 
-Inspected upstream revision: ebfac4b8684753364831886a7cf37943cb794942.
-Validated with Python 3.12, Telethon 1.45.0 and Textual 6.12.0.
+## What changed
 
-## Findings
+`evidex.py` owns the terminal/browser interface, authorization prompts and evidence
+acquisition. `telegram_connection.py` owns client construction, transport fallback,
+connection deadlines and failed-client cleanup. The UI delegates to one connector;
+no thread switching or alternate browser-specific Telegram client is involved.
 
-The cause of the two TCP timeouts is not established. The supplied standalone
-results demonstrate transport connection on that machine, not account
-authorization or acquisition. No live Telegram login was performed here.
+The previous implementation inherited ALL_PROXY and automatically selected a
+nearby session file. Either could make the UI differ from the operator's direct,
+fresh StringSession diagnostic. Connections are now direct unless a proxy is
+explicitly supplied through the form or EVIDEX_PROXY_URL; an existing session
+is selected only through the form or EVIDEX_SESSION_PATH. Managed account sessions
+continue to use their existing phone-derived filenames. No sessions are deleted,
+replaced or silently changed after a failure.
 
-- The form passes the validated API ID/hash, parsed optional proxy and selected
-  session into `ExtractionConfig`, then directly into `TelegramClient`. No code
-  was found that substitutes API credentials or a proxy during fallback.
-- Managed sessions use a phone-derived filename under `EVIDEX_SESSION_DIR`
-  (default relative to the working directory). They persist between runs. The
-  word “managed” does not mean a fresh session. A selected session uses the
-  supplied resolved path. Neither path is replaced with `StringSession()`.
-- Telethon's `connect()` uses the saved session's DC/address/port and auth key.
-  A fresh `StringSession()` need not use the same endpoint or handshake path.
-- Policy is selected by the explicit session field, not file existence:
-  managed sessions use socket timeout 6s, 1 connection retry and outer budget 8s;
-  selected sessions use 10s, 5 retries and outer budget 60s. The outer deadline
-  includes connection initialization, beyond opening a TCP socket. It can cancel
-  work before all retries finish. This is a plausible contributor, not a proven
-  explanation. Policies remain unchanged pending measured evidence.
-- The async Textual worker awaits connection and authorization on the same loop;
-  no thread handoff or blocking `input()` occurs in this flow. Cancel cancels
-  that worker. Failed candidates are disconnected before the next constructor;
-  cleanup has a 3s deadline. A cleanup exception was previously hidden.
-- Telethon 1.45.0 `ConnectionHttp` sends HTTP MTProto packets and enables TLS when
-  its session port is 443. It is not a website reachability check. The observed
-  TLS wrong-version error is consistent with a protocol/endpoint mismatch, but
-  does not explain failure of the independent TCP transports. Fallback remains.
-- This checkout cannot establish which file the operator's terminal executed.
-  Startup now logs the source file and app version to make that comparison possible.
+New transport attempts use the supplied successful baseline: socket timeout 10s,
+connection_retries=1, request_retries=1 and outer deadline 15s. Saved files, whether
+managed or selected, get a 60s outer deadline and the same single-retry policy.
+EVIDEX_CONNECT_TIMEOUT overrides either deadline (finite 1–300 seconds). This
+normalizes the previous 6/8s and 10/60s policies; it is not proof that timeouts were
+the original cause. All three fallback transports remain, including accurately
+labelled HTTP MTProto. HTTP MTProto is not a website reachability check.
 
-## Changes
+Cancellation and ApiIdInvalidError propagate after bounded cleanup. Configuration
+and session-construction errors fail directly rather than being called network
+timeouts. Exhausted transports raise ConnectionError rather than a blanket
+TimeoutError. Diagnostics use fixed safe messages instead of arbitrary exception
+text that may contain credentials.
 
-Correct the HTTP transport label and premature authentication wording. Add
-credential-safe failure descriptions, elapsed time, timeout budget, session
-policy/file presence, DC/port and cleanup diagnostics. Exception text is mapped
-to fixed descriptions rather than copying potentially sensitive proxy URLs,
-request data, phone numbers or codes. Clear the active-client reference after
-failed cleanup, including cancellation and API rejection paths. Preserve the
-TUI, session selection, timeouts, retries, proxy and acquisition/export behavior.
+## Verification and limits
 
-## Further evidence needed
+`python3 evidex.py --check-connection` uses the same connector with an explicit
+fresh in-memory session and no proxy, without Textual, account login or writes to
+saved sessions. It intentionally does not prove authorization or acquisition.
+Never share API hashes, login codes or session files.
 
-Run the edited file in the same virtual environment as the standalone test.
-Record the startup source/version and connection policy, DC/port, transport,
-elapsed/budget and cleanup lines. Verify the proxy field matches the standalone
-setup. Compare the saved-session endpoint to the standalone session endpoint
-locally without sharing session contents or credentials. Do not delete or replace
-sessions to perform this comparison, and do not open the same SQLite session
-concurrently in two clients.
+Unit tests cover configuration forwarding, policies, fallback, constructor errors,
+cleanup, cancellation, API rejection, secret-safe messages, explicit defaults,
+connection checking and browser launching. A mocked full Textual extraction
+connects, checks authorization, acquires a fixture message, writes output and
+verifies every manifest digest. Other tests cover two-factor prompts and control
+recovery after total connection failure. Browser HTTP/WebSocket smoke tests verify
+rendering and F1 interaction without a Telegram account.
 
-If timeouts consistently land on the 8s boundary, a controlled comparison using
-the same session, proxy, transport and retry policy with a longer outer budget
-can establish whether cancellation is causal. The current logs intentionally
-cannot tell whether an underlying socket timeout or the outer deadline raised
-`TimeoutError`; elapsed time and a controlled comparison are required.
-
-## Verification
-
-Run `python -m unittest discover -s tests -v`,
-`python -m compileall -q evidex.py tests`, and `git diff --check`.
-Tests use mocks and require no real Telegram account. They cover direct success,
-fallback to the second and third transports, cleanup order and cleanup failures,
-cancellation, API rejection, both timeout/retry policies, managed file presence,
-safe failure output, total failure, deadline cancellation, separation from
-account authorization, and the existing TUI and integrity helpers. File-preservation
-checks use a mocked client; they do not claim to test Telethon's SQLite writes.
+The original live Telegram failure cannot be reproduced without the operator's
+environment. Hidden proxy/session settings and early cancellation are candidate
+causes, not confirmed causes. No real Telegram login or acquisition was performed
+in this workspace. Run the connection check and retain the latest sanitized log
+if the new version still fails.

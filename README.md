@@ -69,6 +69,31 @@ export TELEGRAM_PHONE="+60123456789"
 python3 evidex.py
 ```
 
+### Connection check and architecture
+
+The terminal and browser use the same `telegram_connection.py` connector:
+connect transport, authorize account, acquire evidence, finalize hashes, disconnect.
+No UI or threading logic lives in the connector. All transports use a 10-second
+socket timeout and one retry. New sessions have a 15-second attempt budget,
+matching the successful standalone diagnostic setup; saved session files have
+60 seconds. A saved managed session receives the same policy as a selected file.
+To override the attempt budget for either, set `EVIDEX_CONNECT_TIMEOUT` to a
+number of seconds between 1 and 300.
+
+To isolate Telegram connectivity from the interface and persistent sessions:
+
+```bash
+python3 evidex.py --check-connection
+```
+
+Enter the API ID and masked API hash when prompted, or use their existing
+environment variables. This is an explicit fresh, direct, in-memory transport
+test. It ignores proxy and saved-session settings, never logs in, never requests
+a verification code, and never opens or replaces saved sessions. A pass proves
+transport connectivity only. If it passes while extraction fails, compare the
+explicit proxy and saved-session DC/port shown in the extraction log. Do not
+delete session files to test connectivity.
+
 ### Filtered Telegram connections
 
 If direct Telegram handshakes are filtered, enter a trusted proxy in the masked
@@ -79,9 +104,8 @@ socks5://username:password@proxy-host:port
 http://username:password@proxy-host:port
 ```
 
-The proxy can also be provided for the current process with
-`EVIDEX_PROXY_URL`. EVIDEX also recognizes `ALL_PROXY` when the dedicated
-variable is unset. Proxy credentials are never written to evidence artifacts.
+The proxy can also be provided explicitly with `EVIDEX_PROXY_URL`.
+Connections are direct by default; generic `ALL_PROXY` settings are not inherited. Proxy credentials are never written to evidence artifacts.
 Avoid untrusted public proxies because they can observe connection metadata.
 
 ### Reusing an existing CLI session
@@ -92,8 +116,8 @@ authorized key and Telegram data-center assignment instead of forcing a new key
 exchange. Close the other CLI before starting EVIDEX; the same SQLite session
 must not be opened by two processes simultaneously.
 
-When exactly one `.session` file exists in the project or current directory,
-EVIDEX automatically prefills it for review.
+Select a session explicitly in the form or through `EVIDEX_SESSION_PATH`.
+EVIDEX does not automatically select unrelated session files.
 
 The session path may also be set with `EVIDEX_SESSION_PATH`. Treat `.session`
 files as credentials and never commit or share them.
