@@ -20,6 +20,11 @@ from telethon.errors import (
     PhoneCodeInvalidError,
     SessionPasswordNeededError,
 )
+from telethon.network.connection import (
+    ConnectionHttp,
+    ConnectionTcpFull,
+    ConnectionTcpObfuscated,
+)
 from textual import on, work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -37,10 +42,15 @@ from textual.widgets import (
     Static,
 )
 
-__version__ = "2.0.1"
+__version__ = "2.0.2"
 APP_NAME = "EVIDEX"
 APP_SUBTITLE = "Evidence Extraction Tool"
-CONNECT_TIMEOUT_SECONDS = 20
+TRANSPORT_TIMEOUT_SECONDS = 8
+TELEGRAM_TRANSPORTS = (
+    ("standard MTProto", ConnectionTcpFull),
+    ("obfuscated MTProto", ConnectionTcpObfuscated),
+    ("HTTPS", ConnectionHttp),
+)
 BASE_DIR = Path(__file__).resolve().parent
 DEFAULT_EXPORT_DIR = Path(os.getenv("EVIDEX_EXPORT_DIR", "evidence_exports"))
 SESSION_DIR = Path(os.getenv("EVIDEX_SESSION_DIR", ".evidex_sessions"))
@@ -508,25 +518,8 @@ class EvidexApp(App[None]):
             config.output_root.mkdir(parents=True, exist_ok=True)
             SESSION_DIR.mkdir(parents=True, exist_ok=True)
             session_key = hashlib.sha256(config.phone.encode("utf-8")).hexdigest()[:12]
-            client = TelegramClient(
-                str(SESSION_DIR / f"evidex_{session_key}"),
-                config.api_id,
-                config.api_hash,
-                timeout=8,
-                connection_retries=2,
-                retry_delay=1,
-            )
-            self._active_client = client
-            self.log_event(
-                f"Opening Telegram connection ({CONNECT_TIMEOUT_SECONDS}s timeout)."
-            )
-            await asyncio.wait_for(
-                client.connect(),
-                timeout=CONNECT_TIMEOUT_SECONDS,
-            )
-            if not client.is_connected():
-                raise ConnectionError("Telegram transport did not connect.")
-            self.log_event("Telegram transport connected.")
+            session_path = SESSION_DIR / f"evidex_{session_key}"
+            client = await self.connect_telegram(config, session_path)
             await self.authorize_client(client, config.phone)
 
             target: str | int = config.target
@@ -700,9 +693,9 @@ class EvidexApp(App[None]):
         except FloodWaitError as error:
             failure = f"Telegram rate limit: retry after {error.seconds} seconds."
             self.report_failure(failure)
-        except TimeoutError:
+        except TimeoutError as error:
             failure = (
-                f"Telegram connection timed out after {CONNECT_TIMEOUT_SECONDS} seconds. "
+                f"{error} "
                 "Check internet access, VPN/firewall settings, and Telegram access "
                 "from this terminal environment."
             )
@@ -751,6 +744,65 @@ class EvidexApp(App[None]):
 
             self.set_running(False)
             self._extraction_worker = None
+
+    async def connect_telegram(
+        self,
+        config: ExtractionConfig,
+        session_path: Path,
+    ) -> TelegramClient:
+        """Try Telegram transports sequentially to handle protocol filtering."""
+        failures: list[str] = []
+
+        for transport_name, transport_class in TELEGRAM_TRANSPORTS:
+            candidate = TelegramClient(
+                str(session_path),
+                config.api_id,
+                config.api_hash,
+                connection=transport_class,
+                timeout=6,
+                request_retries=1,
+                connection_retries=1,
+                retry_delay=1,
+            )
+            connected = False
+            self._active_client = candidate
+            self.set_status(f"Connecting via {transport_name}…")
+            self.log_event(
+                f"Trying {transport_name} "
+                f"({TRANSPORT_TIMEOUT_SECONDS}s timeout)."
+            )
+
+            try:
+                await asyncio.wait_for(
+                    candidate.connect(),
+                    timeout=TRANSPORT_TIMEOUT_SECONDS,
+                )
+                if not candidate.is_connected():
+                    raise ConnectionError("transport did not connect")
+                connected = True
+                self.log_event(f"Connected via {transport_name}.")
+                return candidate
+            except asyncio.CancelledError:
+                raise
+            except ApiIdInvalidError:
+                raise
+            except Exception as error:
+                detail = f"{transport_name}: {type(error).__name__}"
+                failures.append(detail)
+                self.log_event(f"{detail}; trying the next transport.")
+            finally:
+                if not connected:
+                    try:
+                        await asyncio.wait_for(candidate.disconnect(), timeout=3)
+                    except Exception:
+                        pass
+
+        self._active_client = None
+        attempted = ", ".join(name for name, _ in TELEGRAM_TRANSPORTS)
+        raise TimeoutError(
+            f"All Telegram transports failed ({attempted}). "
+            f"Diagnostics: {', '.join(failures)}."
+        )
 
     async def authorize_client(self, client: TelegramClient, phone: str) -> None:
         """Complete Telegram login without ever falling back to blocking input()."""

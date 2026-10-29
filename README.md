@@ -16,7 +16,7 @@ Built with [Textual](https://textual.textualize.io/) and [Telethon](https://docs
 - Machine-readable JSONL plus human-readable text output
 - Case metadata, acquisition report, and a portable SHA-256 manifest
 - Credentials sourced at runtime or through environment variables—not source code
-- Bounded Telegram connection timeout with network diagnostics
+- Automatic standard, obfuscated, and HTTPS Telegram transport fallback
 
 ## Installation
 

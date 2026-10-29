@@ -6,8 +6,9 @@ import hashlib
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
-from evidex import ABOUT_TEXT, EvidexApp, PromptScreen, safe_name
+from evidex import ABOUT_TEXT, EvidexApp, ExtractionConfig, PromptScreen, safe_name
 
 
 class HelperTests(unittest.TestCase):
@@ -61,6 +62,49 @@ class TuiTests(unittest.IsolatedAsyncioTestCase):
             await pilot.press("f3")
             await pilot.pause()
             self.assertEqual(len(app.screen_stack), 2)
+
+    async def test_connection_falls_back_to_https_transport(self) -> None:
+        attempted: list[str] = []
+
+        class FakeClient:
+            def __init__(self, *args: object, connection: type, **kwargs: object) -> None:
+                self.connection = connection
+                self.connected = False
+
+            async def connect(self) -> None:
+                attempted.append(self.connection.__name__)
+                if self.connection.__name__ != "ConnectionHttp":
+                    raise OSError("simulated filtered transport")
+                self.connected = True
+
+            def is_connected(self) -> bool:
+                return self.connected
+
+            async def disconnect(self) -> None:
+                self.connected = False
+
+        config = ExtractionConfig(
+            api_id=1,
+            api_hash="test",
+            phone="+10000000000",
+            target="test",
+            case_id="test",
+            output_root=Path("."),
+            message_limit=1,
+            download_media=False,
+        )
+        app = EvidexApp()
+        app.set_status = lambda message: None  # type: ignore[method-assign]
+        app.log_event = lambda message: None  # type: ignore[method-assign]
+
+        with patch("evidex.TelegramClient", FakeClient):
+            client = await app.connect_telegram(config, Path("unused"))
+
+        self.assertTrue(client.is_connected())
+        self.assertEqual(
+            attempted,
+            ["ConnectionTcpFull", "ConnectionTcpObfuscated", "ConnectionHttp"],
+        )
 
 
 if __name__ == "__main__":
