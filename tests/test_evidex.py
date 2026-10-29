@@ -7,7 +7,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from evidex import EvidexApp, PromptScreen, safe_name
+from evidex import ABOUT_TEXT, EvidexApp, PromptScreen, safe_name
+
 
 class HelperTests(unittest.TestCase):
     def test_safe_name_removes_path_characters(self) -> None:
@@ -49,6 +50,17 @@ class TuiTests(unittest.IsolatedAsyncioTestCase):
             await pilot.press("1", "2", "3", "4", "enter")
             await pilot.pause()
             self.assertEqual(result, ["1234"])
+
+    async def test_about_screen_contains_developer_contact(self) -> None:
+        self.assertIn("Developer: Akmal Taufik", ABOUT_TEXT)
+        self.assertIn("work.akmaltaufik@gmail.com", ABOUT_TEXT)
+        self.assertIn("@mohammadakmaltaufik", ABOUT_TEXT)
+
+        app = EvidexApp()
+        async with app.run_test(size=(120, 40)) as pilot:
+            await pilot.press("f3")
+            await pilot.pause()
+            self.assertEqual(len(app.screen_stack), 2)
 
 
 if __name__ == "__main__":

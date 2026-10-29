@@ -43,6 +43,13 @@ APP_SUBTITLE = "Evidence Extraction Tool"
 BASE_DIR = Path(__file__).resolve().parent
 DEFAULT_EXPORT_DIR = Path(os.getenv("EVIDEX_EXPORT_DIR", "evidence_exports"))
 SESSION_DIR = Path(os.getenv("EVIDEX_SESSION_DIR", ".evidex_sessions"))
+ABOUT_TEXT = """EVIDEX: Evidence Extraction Tool
+
+Developer: Akmal Taufik
+Email: work.akmaltaufik@gmail.com
+LinkedIn: https://www.linkedin.com/in/akmaltaufik
+TikTok: @mohammadakmaltaufik
+"""
 
 
 @dataclass(frozen=True)
@@ -219,6 +226,7 @@ class EvidexApp(App[None]):
         Binding("ctrl+x", "cancel_extraction", "Cancel"),
         Binding("f1", "legal", "Legal"),
         Binding("f2", "setup", "Setup"),
+        Binding("f3", "about", "About"),
         Binding("ctrl+q", "request_quit", "Quit", show=True),
     ]
 
@@ -353,6 +361,7 @@ class EvidexApp(App[None]):
                 with Horizontal(id="doc-actions"):
                     yield Button("Legal  [F1]", id="legal")
                     yield Button("Setup  [F2]", id="setup")
+                    yield Button("About  [F3]", id="about")
             with Vertical(id="activity-panel"):
                 yield Label("ACQUISITION ACTIVITY", id="activity-heading")
                 yield Label("Ready. Configure an authorized extraction.", id="status-line")
@@ -436,6 +445,10 @@ class EvidexApp(App[None]):
     def setup_button(self) -> None:
         self.action_setup()
 
+    @on(Button.Pressed, "#about")
+    def about_button(self) -> None:
+        self.action_about()
+
     def action_focus_start(self) -> None:
         self.query_one("#start", Button).focus()
 
@@ -468,6 +481,9 @@ class EvidexApp(App[None]):
                 read_project_text("README_INSTALL.txt"),
             )
         )
+
+    def action_about(self) -> None:
+        self.push_screen(DocumentScreen("About EVIDEX", ABOUT_TEXT))
 
     @work(exclusive=True, group="extract")
     async def run_extraction(self, config: ExtractionConfig) -> None:

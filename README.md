@@ -22,8 +22,8 @@ Built with [Textual](https://textual.textualize.io/) and [Telethon](https://docs
 EVIDEX requires Python 3.10 or newer.
 
 ```bash
-git clone https://github.com/akmaltaufik123/cyberops.tsi.git
-cd cyberops.tsi
+git clone https://github.com/akmaltaufik123/Evidex.git
+cd Evidex
 python3 -m venv venv
 source venv/bin/activate
 python3 -m pip install -r requirements.txt
@@ -55,6 +55,7 @@ python3 -m unittest discover -s tests -v
 | --- | --- |
 | `F1` | Open legal and responsible-use notice |
 | `F2` | Open setup guide |
+| `F3` | Open developer information |
 | `Ctrl+R` | Focus the start button |
 | `Ctrl+X` | Cancel and finalize a partial acquisition |
 | `Ctrl+Q` | Quit |
@@ -81,6 +82,13 @@ Verify an export from inside its directory with `sha256sum -c manifest.sha256` o
 - A cancelled run is marked `cancelled`, and completed partial artifacts are hashed.
 - Media download failures are recorded without aborting the message export.
 - Review `README_LEGAL.txt` before use.
+
+## Developer contact
+
+- **Developer:** Akmal Taufik
+- **Email:** work.akmaltaufik@gmail.com
+- **LinkedIn:** https://www.linkedin.com/in/akmaltaufik
+- **TikTok:** @mohammadakmaltaufik
 
 ## License
 
