@@ -249,6 +249,15 @@ class NativeHttpTests(unittest.IsolatedAsyncioTestCase):
         (case / "messages.txt").write_text("Evidence sentinel")
         return case
 
+    async def test_stylesheet_route_and_policy_allow_locked_theme(self):
+        response = await self.client.get("/app.css")
+        self.assertEqual(response.status, 200)
+        self.assertEqual(response.content_type, "text/css")
+        self.assertTrue((await response.text()).startswith("/* Hallmark"))
+        response = await self.client.get("/")
+        self.assertIn("style-src 'self'", response.headers["Content-Security-Policy"])
+        self.assertIn('href="/app.css"', await response.text())
+
     async def test_bilingual_catalog_and_all_six_guide_images_are_served(self):
         match = re.search(r'<script type="application/json" id="i18n">(.*?)</script>', self.html, re.S)
         content = json.loads(match.group(1))

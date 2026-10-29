@@ -27,7 +27,7 @@ from telegram_connection import (
     connection_error_detail, parse_proxy_url,
 )
 
-VERSION = "0.2.0"
+VERSION = "0.2.1"
 # Both TCP transports worked in the operator's standalone test. HTTP/TLS did not.
 TRANSPORTS = TELEGRAM_TRANSPORTS[:2]
 
@@ -348,7 +348,7 @@ def create_app() -> web.Application:
         catalog = json.dumps(json.loads(content), ensure_ascii=False).replace("<", r"\u003c")
         return web.Response(text=html.replace("__TOKEN__", token).replace("__COPY__", catalog), content_type="text/html", headers={
             "Cache-Control": "no-store", "X-Frame-Options": "DENY",
-            "Content-Security-Policy": "default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'"})
+            "Content-Security-Policy": "default-src 'self'; script-src 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'"})
 
     async def state(request):
         return web.json_response(engine.state, headers={"Cache-Control": "no-store"})
@@ -391,6 +391,9 @@ def create_app() -> web.Application:
         except (OSError, TimeoutError):
             return web.json_response({"error": f"Could not open a file manager. Open this folder manually: {case}"}, status=503)
         return web.json_response({"ok": True, "path": str(case)})
+
+    async def stylesheet(request):
+        return web.FileResponse(Path(__file__).with_suffix(".css"), headers={"Content-Type": "text/css", "Cache-Control": "no-store"})
 
     async def guide_asset(request):
         name = request.match_info["name"]
@@ -441,6 +444,7 @@ def create_app() -> web.Application:
         await engine.close()
 
     app.router.add_get("/", index)
+    app.router.add_get("/app.css", stylesheet)
     app.router.add_get("/api/state", state)
     app.router.add_post("/api/run", run)
     app.router.add_post("/api/answer", answer)

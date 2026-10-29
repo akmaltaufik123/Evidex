@@ -6,6 +6,18 @@ screenshots, official Telegram assets or evidence of a real account. No live
 credentials were used. Converted to WebP at original resolution for distribution;
 no content, labels or composition were edited after generation.
 
+## Active Paper & Ink series (0.2.1)
+
+The active guide now selects the six `*-paper.webp` files. They show content
+objects (envelope, keys, connection, link, lock and archival folder), with no
+browser bars, phone frames or invented UI. Their full generation prompts are in
+[paper-prompts.json](paper-prompts.json). These were generated as six separate
+images with the built-in image tool, then converted to WebP without changing
+composition or content. Readable instructions remain in the bilingual catalog.
+
+The original six files and prompt notes below are preserved as archive assets;
+they are no longer displayed by the active guide.
+
 ## Prompt set and files
 
 All prompts used this shared brief: one landscape 3:2 instructional illustration,

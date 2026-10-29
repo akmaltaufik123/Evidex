@@ -21,6 +21,15 @@ Open http://127.0.0.1:8000. For another port use `--port 8080`.
 This entry point does not require Textual or Textual Serve.
 If `~/EvidexNext` already exists, use a different new directory.
 
+## Visual system (0.2.1)
+
+EVIDEX now follows the user-supplied Hallmark design contract: Paper & Ink theme,
+locked OKLCH/font tokens, a guided workbench and a separate saved-evidence shelf.
+Both languages are checked at narrow mobile widths. The active guide uses new
+content-only illustrations without fake device/browser frames; original images
+are retained as archive assets. See [DESIGN.md](DESIGN.md) for the durable preview,
+six-axis critique and validation record, and `AGENTS.md` for development rules.
+
 ## Languages and illustrated guidance (0.2.0)
 
 Choose **Bahasa Melayu** or **English** at the top of the page. The interface,

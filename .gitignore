@@ -7,3 +7,6 @@ EVIDEX_*
 __pycache__/
 *.py[cod]
 .DS_Store
+
+# Derived browser QA captures
+.hallmark/
