@@ -47,6 +47,7 @@ __version__ = "2.1.1"
 APP_NAME = "EVIDEX"
 APP_SUBTITLE = "Evidence Extraction Tool"
 TRANSPORT_TIMEOUT_SECONDS = 8
+EXISTING_SESSION_TIMEOUT_SECONDS = 60
 TELEGRAM_TRANSPORTS = (
     ("standard MTProto", ConnectionTcpFull),
     ("obfuscated MTProto", ConnectionTcpObfuscated),
@@ -838,6 +839,12 @@ class EvidexApp(App[None]):
     ) -> TelegramClient:
         """Try Telegram transports sequentially to handle protocol filtering."""
         failures: list[str] = []
+        attempt_timeout = (
+            EXISTING_SESSION_TIMEOUT_SECONDS
+            if config.session_path is not None
+            else TRANSPORT_TIMEOUT_SECONDS
+        )
+        connection_retries = 5 if config.session_path is not None else 1
 
         for transport_name, transport_class in TELEGRAM_TRANSPORTS:
             candidate = TelegramClient(
@@ -846,9 +853,9 @@ class EvidexApp(App[None]):
                 config.api_hash,
                 connection=transport_class,
                 proxy=config.proxy,
-                timeout=6,
+                timeout=10 if config.session_path is not None else 6,
                 request_retries=1,
-                connection_retries=1,
+                connection_retries=connection_retries,
                 retry_delay=1,
             )
             connected = False
@@ -856,14 +863,14 @@ class EvidexApp(App[None]):
             self.set_status(f"Connecting via {transport_name}…")
             self.log_event(
                 f"Trying {transport_name} "
-                f"({TRANSPORT_TIMEOUT_SECONDS}s timeout)"
+                f"({attempt_timeout}s timeout)"
                 f"{' through configured proxy' if config.proxy else ''}."
             )
 
             try:
                 await asyncio.wait_for(
                     candidate.connect(),
-                    timeout=TRANSPORT_TIMEOUT_SECONDS,
+                    timeout=attempt_timeout,
                 )
                 if not candidate.is_connected():
                     raise ConnectionError("transport did not connect")
