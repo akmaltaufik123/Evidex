@@ -7,6 +7,8 @@ import hashlib
 import json
 import os
 import re
+import ssl
+import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -51,7 +53,7 @@ EXISTING_SESSION_TIMEOUT_SECONDS = 60
 TELEGRAM_TRANSPORTS = (
     ("standard MTProto", ConnectionTcpFull),
     ("obfuscated MTProto", ConnectionTcpObfuscated),
-    ("HTTPS", ConnectionHttp),
+    ("HTTP MTProto", ConnectionHttp),
 )
 BASE_DIR = Path(__file__).resolve().parent
 DEFAULT_EXPORT_DIR = Path(os.getenv("EVIDEX_EXPORT_DIR", "evidence_exports"))
@@ -79,6 +81,31 @@ class ExtractionConfig:
     download_media: bool
     proxy: dict[str, Any] | None
     session_path: Path | None
+
+
+def connection_error_detail(error: Exception) -> str:
+    """Describe network failures without copying credential-bearing exception text."""
+    # Third-party/proxy exceptions may embed URLs, credentials or request data.
+    # Use fixed descriptions rather than attempting to redact arbitrary text.
+    if isinstance(error, TimeoutError):
+        message = "connection timed out (socket or attempt deadline)"
+    elif isinstance(error, ConnectionResetError):
+        message = "connection reset by peer"
+    elif isinstance(error, ConnectionRefusedError):
+        message = "connection refused"
+    elif isinstance(error, ssl.SSLError):
+        message = "TLS negotiation failed"
+        if error.reason == "WRONG_VERSION_NUMBER":
+            message += " (WRONG_VERSION_NUMBER)"
+    elif isinstance(error, ConnectionError):
+        message = "transport connection failed"
+    elif isinstance(error, OSError):
+        message = "network or session I/O failure"
+        if isinstance(error.errno, int):
+            message += f" (errno={error.errno})"
+    else:
+        message = "connection failed; exception text withheld for credential safety"
+    return f"{type(error).__name__}: {message}"
 
 
 def utc_now() -> datetime:
@@ -593,7 +620,10 @@ class EvidexApp(App[None]):
         self.set_running(True)
         self.query_one("#progress", ProgressBar).update(total=100, progress=0)
         self.set_status("Connecting to Telegram…")
-        self.log_event("Starting authenticated Telegram session.")
+        self.log_event(
+            f"Starting Telegram connection (EVIDEX {__version__}; "
+            f"source: {Path(__file__).resolve()})."
+        )
 
         try:
             config.output_root.mkdir(parents=True, exist_ok=True)
@@ -846,6 +876,15 @@ class EvidexApp(App[None]):
         )
         connection_retries = 5 if config.session_path is not None else 1
 
+        session_file = Path(
+            str(session_path) if str(session_path).endswith(".session")
+            else str(session_path) + ".session"
+        )
+        self.log_event(
+            f"Connection policy: session={'selected' if config.session_path else 'managed'}, "
+            f"session_file_present={session_file.is_file()}, "
+            f"connection_retries={connection_retries}, request_retries=1."
+        )
         for transport_name, transport_class in TELEGRAM_TRANSPORTS:
             candidate = TelegramClient(
                 str(session_path),
@@ -859,6 +898,7 @@ class EvidexApp(App[None]):
                 retry_delay=1,
             )
             connected = False
+            started = time.monotonic()
             self._active_client = candidate
             self.set_status(f"Connecting via {transport_name}…")
             self.log_event(
@@ -867,6 +907,11 @@ class EvidexApp(App[None]):
                 f"{' through configured proxy' if config.proxy else ''}."
             )
 
+            self.log_event(
+                f"{transport_name} endpoint: dc={candidate.session.dc_id}, "
+                f"port={candidate.session.port}; "
+                f"socket_timeout={10 if config.session_path is not None else 6}s."
+            )
             try:
                 await asyncio.wait_for(
                     candidate.connect(),
@@ -875,22 +920,31 @@ class EvidexApp(App[None]):
                 if not candidate.is_connected():
                     raise ConnectionError("transport did not connect")
                 connected = True
-                self.log_event(f"Connected via {transport_name}.")
+                self.log_event(
+                    f"Transport connected via {transport_name}; account authorization pending."
+                )
                 return candidate
             except asyncio.CancelledError:
                 raise
             except ApiIdInvalidError:
                 raise
             except Exception as error:
-                detail = f"{transport_name}: {type(error).__name__}"
+                detail = (
+                    f"{transport_name}: {connection_error_detail(error)} "
+                    f"(elapsed={time.monotonic() - started:.1f}s, budget={attempt_timeout}s)"
+                )
                 failures.append(detail)
                 self.log_event(f"{detail}; trying the next transport.")
             finally:
                 if not connected:
                     try:
                         await asyncio.wait_for(candidate.disconnect(), timeout=3)
-                    except Exception:
-                        pass
+                    except Exception as error:
+                        self.log_event(
+                            f"{transport_name} cleanup: {connection_error_detail(error)}"
+                        )
+                    finally:
+                        self._active_client = None
 
         self._active_client = None
         attempted = ", ".join(name for name, _ in TELEGRAM_TRANSPORTS)

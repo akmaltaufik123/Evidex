@@ -2,12 +2,18 @@
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import os
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from types import SimpleNamespace
+from dataclasses import replace
+from unittest.mock import AsyncMock, MagicMock, patch
+
+from telethon.errors import ApiIdInvalidError
+import evidex
 
 from evidex import (
     ABOUT_TEXT,
@@ -95,12 +101,13 @@ class TuiTests(unittest.IsolatedAsyncioTestCase):
             await pilot.pause()
             self.assertEqual(len(app.screen_stack), 2)
 
-    async def test_connection_falls_back_to_https_transport(self) -> None:
+    async def test_connection_falls_back_to_http_mtproto_transport(self) -> None:
         attempted: list[str] = []
         received_proxies: list[object] = []
 
         class FakeClient:
             def __init__(self, *args: object, connection: type, **kwargs: object) -> None:
+                self.session = SimpleNamespace(dc_id=2, port=443)
                 self.connection = connection
                 self.connected = False
                 received_proxies.append(kwargs.get("proxy"))
@@ -143,6 +150,138 @@ class TuiTests(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(len(received_proxies), 3)
         self.assertTrue(all(proxy == config.proxy for proxy in received_proxies))
+
+
+class ConnectionTests(unittest.IsolatedAsyncioTestCase):
+    def setUp(self) -> None:
+        self.config = ExtractionConfig(
+            api_id=123456, api_hash="secret-hash", phone="+10000000000",
+            target="test", case_id="test", output_root=Path("."),
+            message_limit=1, download_media=False,
+            proxy=parse_proxy_url("socks5://secret-user:secret-password@localhost:1080"),
+            session_path=None,
+        )
+        self.app = EvidexApp()
+        self.app.set_status = MagicMock()
+        self.app.log_event = MagicMock()
+
+    def client(self, error: BaseException | None = None) -> MagicMock:
+        client = MagicMock()
+        client.session = SimpleNamespace(dc_id=2, port=443)
+        client.connect = AsyncMock(side_effect=error)
+        client.disconnect = AsyncMock()
+        client.is_connected.return_value = error is None
+        return client
+
+    async def test_success_preserves_client_and_configuration(self) -> None:
+        client = self.client()
+        with patch("evidex.TelegramClient", return_value=client) as factory:
+            result = await self.app.connect_telegram(self.config, Path("chosen"))
+        self.assertIs(result, client)
+        self.assertIs(self.app._active_client, client)
+        client.disconnect.assert_not_awaited()
+        args, kwargs = factory.call_args
+        self.assertEqual(args, ("chosen", self.config.api_id, self.config.api_hash))
+        self.assertEqual(kwargs["proxy"], self.config.proxy)
+
+    async def test_cleanup_precedes_second_transport(self) -> None:
+        first, second = self.client(OSError("failed")), self.client()
+        def create(*args: object, **kwargs: object) -> MagicMock:
+            if first.connect.await_count:
+                first.disconnect.assert_awaited_once()
+                return second
+            return first
+        with patch("evidex.TelegramClient", side_effect=create):
+            self.assertIs(await self.app.connect_telegram(self.config, Path("chosen")), second)
+        second.disconnect.assert_not_awaited()
+
+    async def test_cancellation_propagates_after_cleanup(self) -> None:
+        client = self.client(asyncio.CancelledError())
+        with patch("evidex.TelegramClient", return_value=client) as factory:
+            with self.assertRaises(asyncio.CancelledError):
+                await self.app.connect_telegram(self.config, Path("chosen"))
+        client.disconnect.assert_awaited_once()
+        self.assertEqual(factory.call_count, 1)
+        self.assertIsNone(self.app._active_client)
+
+    async def test_invalid_credentials_are_not_network_timeouts(self) -> None:
+        client = self.client(ApiIdInvalidError(request=None))
+        with patch("evidex.TelegramClient", return_value=client) as factory:
+            with self.assertRaises(ApiIdInvalidError):
+                await self.app.connect_telegram(self.config, Path("chosen"))
+        client.disconnect.assert_awaited_once()
+        self.assertEqual(factory.call_count, 1)
+        self.assertIsNone(self.app._active_client)
+
+    async def test_retry_and_deadline_policies(self) -> None:
+        original_wait_for = asyncio.wait_for
+        for selected in (None, Path("existing.session")):
+            with self.subTest(selected=selected):
+                client = self.client()
+                with patch("evidex.TelegramClient", return_value=client) as factory, patch(
+                    "evidex.asyncio.wait_for", wraps=original_wait_for
+                ) as wait_for:
+                    await self.app.connect_telegram(replace(self.config, session_path=selected), Path("chosen"))
+                kwargs = factory.call_args.kwargs
+                self.assertEqual(kwargs["connection_retries"], 5 if selected else 1)
+                self.assertEqual(kwargs["timeout"], 10 if selected else 6)
+                self.assertEqual(kwargs["request_retries"], 1)
+                self.assertEqual(wait_for.call_args.kwargs["timeout"],
+                                 evidex.EXISTING_SESSION_TIMEOUT_SECONDS if selected else evidex.TRANSPORT_TIMEOUT_SECONDS)
+
+    async def test_total_failure_has_safe_diagnostics(self) -> None:
+        secret = f"{self.config.api_hash} {self.config.phone} secret-user secret-password code=12345"
+        clients = [self.client(OSError(secret)) for _ in evidex.TELEGRAM_TRANSPORTS]
+        with patch("evidex.TelegramClient", side_effect=clients):
+            with self.assertRaises(TimeoutError) as caught:
+                await self.app.connect_telegram(self.config, Path("chosen"))
+        output = str(caught.exception) + str(self.app.log_event.call_args_list)
+        for value in (self.config.api_hash, self.config.phone, "secret-user", "secret-password", "12345"):
+            self.assertNotIn(value, output)
+        for name, _ in evidex.TELEGRAM_TRANSPORTS:
+            self.assertIn(name, str(caught.exception))
+        for client in clients:
+            client.disconnect.assert_awaited_once()
+        self.assertIsNone(self.app._active_client)
+
+    async def test_managed_file_keeps_managed_policy_and_contents(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            session = Path(directory) / "managed.session"
+            session.write_bytes(b"session sentinel")
+            with patch("evidex.TelegramClient", return_value=self.client()) as factory:
+                await self.app.connect_telegram(self.config, session)
+            self.assertEqual(factory.call_args.kwargs["connection_retries"], 1)
+            self.assertEqual(session.read_bytes(), b"session sentinel")
+            self.assertIn("session_file_present=True", str(self.app.log_event.call_args_list))
+
+    async def test_connect_does_not_authorize_account(self) -> None:
+        client = self.client()
+        with patch("evidex.TelegramClient", return_value=client):
+            await self.app.connect_telegram(self.config, Path("chosen"))
+        client.is_user_authorized.assert_not_called()
+        client.send_code_request.assert_not_called()
+        self.assertIn("authorization pending", str(self.app.log_event.call_args_list))
+
+    async def test_cleanup_failure_is_reported_safely(self) -> None:
+        first, second = self.client(OSError("failed")), self.client()
+        first.disconnect.side_effect = OSError("secret-password")
+        with patch("evidex.TelegramClient", side_effect=[first, second]):
+            self.assertIs(await self.app.connect_telegram(self.config, Path("chosen")), second)
+        output = str(self.app.log_event.call_args_list)
+        self.assertIn("cleanup:", output)
+        self.assertNotIn("secret-password", output)
+
+    async def test_outer_timeout_cleans_up_and_falls_back(self) -> None:
+        first, second = self.client(), self.client()
+        async def stall() -> None:
+            await asyncio.Event().wait()
+        first.connect.side_effect = stall
+        with patch("evidex.TRANSPORT_TIMEOUT_SECONDS", 0.01), patch(
+            "evidex.TelegramClient", side_effect=[first, second]
+        ):
+            self.assertIs(await self.app.connect_telegram(self.config, Path("chosen")), second)
+        first.disconnect.assert_awaited_once()
+        self.assertIn("connection timed out", str(self.app.log_event.call_args_list))
 
 
 if __name__ == "__main__":
