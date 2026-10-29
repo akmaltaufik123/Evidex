@@ -43,7 +43,7 @@ from textual.widgets import (
     Static,
 )
 
-__version__ = "2.1.0"
+__version__ = "2.1.1"
 APP_NAME = "EVIDEX"
 APP_SUBTITLE = "Evidence Extraction Tool"
 TRANSPORT_TIMEOUT_SECONDS = 8
@@ -77,6 +77,7 @@ class ExtractionConfig:
     message_limit: int | None
     download_media: bool
     proxy: dict[str, Any] | None
+    session_path: Path | None
 
 
 def utc_now() -> datetime:
@@ -137,6 +138,14 @@ def read_project_text(filename: str) -> str:
     if not path.is_file():
         return f"Document not found: {filename}"
     return path.read_text(encoding="utf-8")
+
+
+def discover_local_session() -> str:
+    """Prefill one unambiguous local Telethon session for easy migration."""
+    candidates: set[Path] = set()
+    for directory in {Path.cwd().resolve(), BASE_DIR}:
+        candidates.update(path.resolve() for path in directory.glob("*.session"))
+    return str(next(iter(candidates))) if len(candidates) == 1 else ""
 
 
 class PromptScreen(ModalScreen[str | None]):
@@ -387,6 +396,12 @@ class EvidexApp(App[None]):
                     password=True,
                     id="proxy-url",
                 )
+                yield Label("Existing Telegram session (optional)", classes="field-label")
+                yield Input(
+                    value=os.getenv("EVIDEX_SESSION_PATH", discover_local_session()),
+                    placeholder="Path to an existing .session file",
+                    id="session-path",
+                )
                 yield Label("Case / reference ID", classes="field-label")
                 yield Input(
                     value=f"case-{utc_now():%Y%m%d}",
@@ -434,6 +449,7 @@ class EvidexApp(App[None]):
         phone = self.query_one("#phone", Input).value.strip()
         target = self.query_one("#target", Input).value.strip()
         proxy_text = self.query_one("#proxy-url", Input).value.strip()
+        session_text = self.query_one("#session-path", Input).value.strip()
         case_id = self.query_one("#case-id", Input).value.strip()
         output_text = self.query_one("#output-root", Input).value.strip()
         limit_text = self.query_one("#message-limit", Input).value.strip()
@@ -472,6 +488,22 @@ class EvidexApp(App[None]):
                 self.notify(str(error), severity="error")
                 return None
 
+        session_path: Path | None = None
+        if session_text:
+            session_path = Path(session_text).expanduser().resolve()
+            if not session_path.is_file():
+                self.notify(
+                    "The selected Telegram session file does not exist.",
+                    severity="error",
+                )
+                return None
+            if session_path.suffix != ".session":
+                self.notify(
+                    "Telegram session files must use the .session extension.",
+                    severity="error",
+                )
+                return None
+
         return ExtractionConfig(
             api_id=int(api_id_text),
             api_hash=api_hash,
@@ -482,6 +514,7 @@ class EvidexApp(App[None]):
             message_limit=int(limit_text) if limit_text else None,
             download_media=self.query_one("#download-media", Checkbox).value,
             proxy=proxy,
+            session_path=session_path,
         )
 
     @on(Button.Pressed, "#start")
@@ -565,7 +598,11 @@ class EvidexApp(App[None]):
             config.output_root.mkdir(parents=True, exist_ok=True)
             SESSION_DIR.mkdir(parents=True, exist_ok=True)
             session_key = hashlib.sha256(config.phone.encode("utf-8")).hexdigest()[:12]
-            session_path = SESSION_DIR / f"evidex_{session_key}"
+            session_path = config.session_path or SESSION_DIR / f"evidex_{session_key}"
+            if config.session_path:
+                self.log_event("Using the operator-selected existing Telegram session.")
+            else:
+                self.log_event("Using an EVIDEX-managed Telegram session.")
             client = await self.connect_telegram(config, session_path)
             await self.authorize_client(client, config.phone)
 
@@ -622,6 +659,7 @@ class EvidexApp(App[None]):
                     "download_media": config.download_media,
                     "ordering": "oldest_to_newest",
                     "proxy_used": config.proxy is not None,
+                    "existing_session_reused": config.session_path is not None,
                 },
                 "available_messages_at_start": available_messages,
                 "credential_storage": "Credentials were not written to this export.",

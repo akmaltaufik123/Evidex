@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -13,6 +14,7 @@ from evidex import (
     EvidexApp,
     ExtractionConfig,
     PromptScreen,
+    discover_local_session,
     parse_proxy_url,
     safe_name,
 )
@@ -45,6 +47,17 @@ class HelperTests(unittest.TestCase):
     def test_proxy_url_rejects_unsupported_scheme(self) -> None:
         with self.assertRaisesRegex(ValueError, "scheme"):
             parse_proxy_url("ftp://127.0.0.1:21")
+
+    def test_discovers_one_local_session(self) -> None:
+        previous_directory = Path.cwd()
+        with tempfile.TemporaryDirectory() as temporary:
+            session = Path(temporary) / "existing.session"
+            session.touch()
+            try:
+                os.chdir(temporary)
+                self.assertEqual(discover_local_session(), str(session.resolve()))
+            finally:
+                os.chdir(previous_directory)
 
 class TuiTests(unittest.IsolatedAsyncioTestCase):
     async def test_main_screen_and_legal_modal(self) -> None:
@@ -114,6 +127,7 @@ class TuiTests(unittest.IsolatedAsyncioTestCase):
             message_limit=1,
             download_media=False,
             proxy=parse_proxy_url("socks5://127.0.0.1:1080"),
+            session_path=None,
         )
         app = EvidexApp()
         app.set_status = lambda message: None  # type: ignore[method-assign]

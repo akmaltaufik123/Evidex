@@ -18,6 +18,7 @@ Built with [Textual](https://textual.textualize.io/) and [Telethon](https://docs
 - Credentials sourced at runtime or through environment variables—not source code
 - Automatic standard, obfuscated, and HTTPS Telegram transport fallback
 - Masked SOCKS5, SOCKS4, and HTTP proxy support for filtered networks
+- Reuse of an existing authorized Telegram `.session` file
 
 ## Installation
 
@@ -57,6 +58,20 @@ The proxy can also be provided for the current process with
 `EVIDEX_PROXY_URL`. EVIDEX also recognizes `ALL_PROXY` when the dedicated
 variable is unset. Proxy credentials are never written to evidence artifacts.
 Avoid untrusted public proxies because they can observe connection metadata.
+
+### Reusing an existing CLI session
+
+If another Telethon CLI already connects successfully, enter the absolute path
+to its `.session` file in **Existing Telegram session**. EVIDEX will reuse its
+authorized key and Telegram data-center assignment instead of forcing a new key
+exchange. Close the other CLI before starting EVIDEX; the same SQLite session
+must not be opened by two processes simultaneously.
+
+When exactly one `.session` file exists in the project or current directory,
+EVIDEX automatically prefills it for review.
+
+The session path may also be set with `EVIDEX_SESSION_PATH`. Treat `.session`
+files as credentials and never commit or share them.
 
 Do not commit credentials, session files, or evidence exports.
 

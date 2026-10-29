@@ -73,6 +73,7 @@
    Optional path settings:
            EVIDEX_EXPORT_DIR
            EVIDEX_SESSION_DIR
+           EVIDEX_SESSION_PATH
            EVIDEX_PROXY_URL
 
    EVIDEX_PROXY_URL accepts a SOCKS5, SOCKS4, or HTTP proxy URL. Example:
@@ -80,3 +81,9 @@
 
    Protect the session directory. A Telegram session file grants account access
    and must be handled as a credential.
+
+7. REUSING AN EXISTING TELETHON SESSION:
+   If a previous Telethon tool already connects successfully, close that tool
+   and enter the absolute path to its `.session` file in EVIDEX. This reuses the
+   authorized key and working Telegram data-center assignment. Never run two
+   programs against the same session file at the same time.
