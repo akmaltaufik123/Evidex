@@ -6,6 +6,14 @@ Built with [Textual](https://textual.textualize.io/) and [Telethon](https://docs
 
 > Use EVIDEX only where you have explicit authorization and a lawful basis to collect the data.
 
+## EVIDEX Next: native localhost interface
+
+For the new standalone browser entry point, see [README_NEXT.md](README_NEXT.md).
+Run `python3 -m pip install -r requirements-next.txt`, then
+`python3 evidex_next.py` and open <http://127.0.0.1:8000>.
+It uses native browser forms and one server-side job, without a Textual bridge.
+The existing TUI and its browser mode remain available below.
+
 ## Capabilities
 
 - Guided extraction form with validation and masked secrets

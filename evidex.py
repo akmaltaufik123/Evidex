@@ -7,14 +7,12 @@ import asyncio
 import hashlib
 import json
 import os
-import re
 import shlex
 import sys
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import timezone
 from pathlib import Path
 from typing import Any
-from urllib.parse import unquote, urlparse
 
 from telethon import TelegramClient
 from telethon.errors import (
@@ -24,7 +22,8 @@ from telethon.errors import (
     PhoneCodeInvalidError,
     SessionPasswordNeededError,
 )
-from telegram_connection import connect_client, check_connection
+from telegram_connection import connect_client, check_connection, parse_proxy_url
+from evidence_store import utc_now, safe_name, sha256_file, write_json
 from textual import on, work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -71,60 +70,6 @@ class ExtractionConfig:
     download_media: bool
     proxy: dict[str, Any] | None
     session_path: Path | None
-
-
-
-def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
-
-
-def safe_name(value: str, fallback: str = "case") -> str:
-    """Convert user-controlled text to a safe, short directory component."""
-    cleaned = re.sub(r"[^A-Za-z0-9_.-]+", "_", value.strip()).strip("._")
-    return (cleaned[:80] or fallback)
-
-
-def parse_proxy_url(value: str) -> dict[str, Any]:
-    """Parse a SOCKS/HTTP proxy URL into Telethon's proxy configuration."""
-    parsed = urlparse(value.strip())
-    proxy_type = parsed.scheme.lower()
-    if proxy_type not in {"socks5", "socks4", "http"}:
-        raise ValueError("Proxy scheme must be socks5, socks4, or http.")
-    if not parsed.hostname:
-        raise ValueError("Proxy URL must include a host.")
-    try:
-        port = parsed.port
-    except ValueError as error:
-        raise ValueError("Proxy URL contains an invalid port.") from error
-    if port is None:
-        raise ValueError("Proxy URL must include a port.")
-
-    return {
-        "proxy_type": proxy_type,
-        "addr": parsed.hostname,
-        "port": port,
-        "username": unquote(parsed.username) if parsed.username else None,
-        "password": unquote(parsed.password) if parsed.password else None,
-        "rdns": True,
-    }
-
-
-def sha256_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
-
-
-def write_json(path: Path, payload: dict[str, Any]) -> None:
-    """Write JSON atomically so interrupted runs do not leave partial metadata."""
-    temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(
-        json.dumps(payload, ensure_ascii=False, indent=2, default=str) + "\n",
-        encoding="utf-8",
-    )
-    temporary.replace(path)
 
 
 def read_project_text(filename: str) -> str:

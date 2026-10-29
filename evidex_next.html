@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EVIDEX Next · Local workspace</title>
+<style>
+:root{color-scheme:dark;font-family:Inter,system-ui,sans-serif;background:#080e18;color:#e6edf7}*{box-sizing:border-box}body{margin:0}header{padding:24px max(24px,calc((100vw - 1160px)/2));border-bottom:1px solid #203047;background:#0b1321;display:flex;justify-content:space-between;align-items:center}header strong{font-size:24px;letter-spacing:3px}header span{color:#6be4bd;font-size:12px;letter-spacing:1px}.wrap{max-width:1160px;margin:34px auto;padding:0 24px}h1{font-size:30px;letter-spacing:-1px;margin:0 0 8px}p{color:#a3b3c9;line-height:1.6;margin:8px 0 24px}.grid{display:grid;grid-template-columns:1.1fr 1fr;gap:24px;align-items:start}.card{background:#101a2a;border:1px solid #22324a;border-radius:16px;padding:24px}.eyebrow{font-size:11px;letter-spacing:2px;color:#71dbb8;margin:0 0 16px}h2{font-size:18px;margin:0 0 20px}label{display:block;font-size:13px;color:#c2cfe0;margin:16px 0 7px}input:not([type=checkbox]){display:block;width:100%;background:#080f1c;color:#f0f5fc;border:1px solid #34435a;border-radius:8px;padding:12px;font:inherit;min-width:0}input:focus{outline:2px solid #71dbb8;outline-offset:2px}.row{display:grid;grid-template-columns:1fr 1fr;gap:16px}.check{display:flex;gap:10px;align-items:flex-start;line-height:1.5}.check input{margin-top:4px;accent-color:#71dbb8}button{background:#71dbb8;color:#09241b;border:0;border-radius:8px;padding:12px 18px;font:600 13px system-ui;cursor:pointer}button.secondary{background:#192b42;border:1px solid #3b506b;color:#d6e3f5}button.danger{background:#361c29;color:#ffa8bc;border:1px solid #6a3547}button:disabled{opacity:.4;cursor:default}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}details{margin-top:24px;border-top:1px solid #22324a;padding-top:18px}summary{color:#99b1ce;font-size:13px;cursor:pointer}.hint{font-size:12px;color:#8ea1bb;line-height:1.6;margin-top:10px}.stage{font-size:24px;color:#71dbb8;margin:4px 0 20px;text-transform:capitalize}.stats{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0}.stat{background:#0b1321;padding:16px;border-radius:10px}.stat b{display:block;font-size:28px}.stat span{font-size:12px;color:#8ea1bb}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#080f1c;border-radius:10px;padding:16px;min-height:180px;max-height:350px;overflow:auto;color:#b6c9df;font:12px/1.8 ui-monospace,monospace}#notice{color:#ffc48d;white-space:pre-wrap;margin:16px 0}#prompt{border:1px solid #71dbb8;background:#0c2525;border-radius:10px;padding:18px;margin-top:20px}#output{overflow-wrap:anywhere;color:#a9d8c9;font-size:12px;line-height:1.7}footer{font-size:12px;color:#7f91aa;margin:24px 0}.steps{font-size:12px;color:#829bb8;margin-bottom:20px;line-height:1.7}fieldset{border:0;padding:0;margin:0;min-width:0}[hidden]{display:none!important}@media(max-width:760px){.grid{grid-template-columns:1fr}.row{grid-template-columns:1fr}header{padding:20px}.wrap{padding:0 16px;margin-top:24px}header span{max-width:140px;text-align:right}}
+</style>
+</head>
+<body>
+<header><strong>EVIDEX <small style="font-size:13px;color:#8ca9c9;letter-spacing:1px">NEXT</small></strong><span>LOCAL WORKSPACE · v0.1.0</span></header>
+<main class="wrap">
+<div class="eyebrow">TELEGRAM EVIDENCE ACQUISITION</div>
+<h1>A clear path from connection to evidence.</h1>
+<p>Test your connection, authorize your account, then collect and verify. Everything runs on this machine.</p>
+<div class="grid">
+<section class="card"><h2>Acquisition profile</h2>
+<form id="profile" autocomplete="off">
+<fieldset id="fields">
+<div class="row"><div><label for="api_id">Telegram API ID</label><input id="api_id" name="api_id" inputmode="numeric" required placeholder="Numeric ID"></div><div><label for="api_hash">API hash</label><input id="api_hash" name="api_hash" type="password" required placeholder="32-character API hash" autocomplete="off"></div></div>
+<div class="hint">Credentials stay in process memory and the form. They are not saved in browser storage or exported.</div>
+<div class="row"><div><label for="phone">Account phone</label><input id="phone" name="phone" type="tel" placeholder="+60123456789"></div><div><label for="target">Telegram target</label><input id="target" name="target" placeholder="@username, public link or ID"></div></div>
+<div class="row"><div><label for="case">Case reference</label><input id="case" name="case" value="case-001"></div><div><label for="limit">Message limit</label><input id="limit" name="limit" inputmode="numeric" placeholder="Blank = all messages"></div></div>
+<label class="check"><input type="checkbox" name="media" checked>Download media and calculate file hashes</label>
+<label class="check"><input type="checkbox" name="authorized">I am authorized to acquire evidence from this target.</label>
+<details><summary>Existing session and proxy settings</summary><label for="session">Existing session file (optional)</label><input id="session" name="session" placeholder="Absolute path to a .session file"><label for="proxy">Proxy URL (optional)</label><input id="proxy" name="proxy" type="password" placeholder="socks5://host:port" autocomplete="off"><div class="hint">Blank session uses the managed account session. Blank proxy connects directly. Neither is automatically selected from nearby files or generic proxy settings.</div></details>
+</fieldset>
+<div class="actions"><button id="test" type="button" class="secondary">1. Test direct connection</button><button id="start" type="submit">2. Start acquisition</button></div>
+<div class="hint">The connection test uses a fresh in-memory session. It does not log in, acquire messages or touch saved sessions.</div>
+</form>
+</section>
+<section class="card" aria-live="polite"><div class="eyebrow">LIVE JOB STATUS</div><div class="steps">Connection → Account authorization → Acquisition → Integrity manifest</div><div id="stage" class="stage">Idle</div><div id="notice" role="alert"></div>
+<div class="stats"><div class="stat"><b id="messages">0</b><span>Messages acquired</span></div><div class="stat"><b id="media">0</b><span>Media files saved</span></div></div>
+<form id="prompt" hidden autocomplete="off"><label id="promptlabel" for="answer">Telegram verification code</label><input id="answer" name="answer" type="password" autocomplete="off" required><div class="actions"><button type="submit">Continue login</button></div></form>
+<div id="output"></div><pre id="log">Ready. Enter your API credentials to test Telegram connectivity.</pre><button id="cancel" class="danger" disabled>Cancel and finalize</button>
+<div class="hint">A running job continues if you reload this page. Reopen the page to resume the login prompt or view progress. Use Cancel before stopping the server.</div>
+</section></div>
+<footer>Evidence is saved on the Python host as JSONL, text, metadata, acquisition report and SHA-256 manifest. Keep one EVIDEX process per Telegram session.</footer>
+</main>
+<script>
+'use strict';
+const token='__TOKEN__';
+const $=id=>document.getElementById(id);
+let polling=false,lastPrompt=null;
+async function api(path,data){const options={headers:{'X-Evidex-Token':token}};if(data!==undefined){options.method='POST';options.headers['Content-Type']='application/json';options.body=JSON.stringify(data)}const response=await fetch('/api/'+path,options);if(!response.ok){let error;try{error=(await response.json()).error}catch{error='The local server rejected the request. Reload this page.'}throw new Error(error)}return response.json()}
+function profile(mode){const form=new FormData($('profile'));return{...Object.fromEntries(form),mode,authorized:form.has('authorized'),media:form.has('media')}}
+async function start(mode){$('notice').textContent='';try{await api('run',profile(mode));await poll()}catch(error){$('notice').textContent=error.message}}
+$('profile').addEventListener('submit',event=>{event.preventDefault();start('acquire')});
+$('test').addEventListener('click',()=>start('test'));
+$('prompt').addEventListener('submit',async event=>{event.preventDefault();try{await api('answer',{answer:$('answer').value});$('answer').value='';await poll()}catch(error){$('notice').textContent=error.message}});
+$('cancel').addEventListener('click',async()=>{try{await api('cancel',{});await poll()}catch(error){$('notice').textContent=error.message}});
+async function poll(){if(polling)return;polling=true;try{const state=await api('state');$('stage').textContent=state.stage.replaceAll('_',' ');$('messages').textContent=state.messages;$('media').textContent=state.media;$('fields').disabled=state.busy;$('test').disabled=state.busy;$('start').disabled=state.busy;$('cancel').disabled=!state.busy;$('prompt').hidden=!state.prompt;if(state.error)$('notice').textContent=state.error;$('output').textContent=state.output?'Evidence directory: '+state.output:'';if(state.logs.length)$('log').textContent=state.logs.join('\n');if(state.prompt){$('promptlabel').textContent=state.prompt==='password'?'Telegram two-factor password':'Telegram verification code';if(lastPrompt!==state.prompt)$('answer').focus()}lastPrompt=state.prompt}catch(error){$('notice').textContent='Local server unavailable. Keep its terminal open, then reload this page.'}finally{polling=false}}
+poll();setInterval(poll,750);
+</script>
+</body></html>

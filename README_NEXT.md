@@ -1,0 +1,88 @@
+# EVIDEX Next
+
+A separate native localhost application. Launch with `python3 evidex_next.py`.
+The existing `python3 evidex.py` application remains available.
+
+## Clean setup
+
+Use a new directory and virtual environment so changes in an old EVIDEX checkout
+cannot block installation or run an older entry point:
+
+```bash
+git clone https://github.com/akmaltaufik123/Evidex.git ~/EvidexNext
+cd ~/EvidexNext
+python3 -m venv venv
+source venv/bin/activate
+python3 -m pip install -r requirements-next.txt
+python3 evidex_next.py
+```
+
+Open http://127.0.0.1:8000. For another port use `--port 8080`.
+This entry point does not require Textual or Textual Serve.
+If `~/EvidexNext` already exists, use a different new directory.
+
+## Workflow
+
+1. Enter your Telegram API ID and API hash from https://my.telegram.org.
+2. Select **Test direct connection**. This uses a fresh in-memory session,
+   no proxy and no account login. A pass proves transport connectivity only.
+3. Enter the account phone, target and case reference. Confirm authorization.
+4. Select **Start acquisition**. Enter the Telegram code and two-factor password
+   in the local page when requested. Already-authorized sessions skip login.
+5. Read the evidence path in the status panel. The app writes JSONL, text,
+   metadata, an acquisition report and a SHA-256 manifest on the Python host.
+
+Use **Cancel and finalize** to stop safely. Reloading the page does not cancel
+an active job; the same server job and any waiting login prompt reappear.
+Ctrl+C shuts down the server and cancels/finalizes the active job.
+
+## Small architecture
+
+- `evidex_next.html`: native HTML/CSS/JavaScript form and status polling. No
+  terminal emulator, WebSocket bridge, frontend build or browser storage.
+- `evidex_next.py`: a local HTTP server and one acquisition task, on the same
+  asyncio loop as every Telethon operation. Only one job runs at a time.
+- `telegram_connection.py`: shared transport creation, bounded connection,
+  diagnostics and cleanup. Next uses standard TCP and obfuscated TCP, which
+  passed the operator's standalone test. It excludes the HTTP/TLS fallback that
+  failed there. The original application retains all three transports.
+- `evidence_store.py`: atomic JSON writing and SHA-256 helpers shared by both
+  entry points. Next writes a new evidence directory for every acquisition.
+
+## Sessions, proxies and files
+
+Acquisition uses the selected `.session` file, or the phone-derived managed
+session under `.evidex_sessions`. Session files are never deleted or replaced as
+an automatic recovery step. To reuse an old account session, choose its absolute
+path explicitly. Close other EVIDEX instances using that session first. A new
+checkout uses its own relative session/export directories by default.
+
+Proxy settings are explicit in the form. Generic ALL_PROXY is ignored. Next does
+not prefill credentials, proxies or sessions from environment variables. You may
+set EVIDEX_SESSION_DIR and EVIDEX_EXPORT_DIR for storage paths and
+EVIDEX_CONNECT_TIMEOUT for an attempt budget from 1 to 300 seconds.
+
+Credentials are not put in status responses or written to browser storage/logs.
+The authorized Telegram session itself is an account credential: protect it.
+The server binds to 127.0.0.1, uses a per-launch request token and rejects other
+Host values. Do not expose it through public tunnels or bind it to a public host.
+Files remain on the machine running Python; the app does not provide downloads.
+
+## Verification and limits
+
+Run the native tests with:
+
+```bash
+python3 -m unittest discover -s tests -p 'test_evidex_next.py' -v
+```
+
+Native tests use mocked Telegram clients and real local HTTP routes. They exercise connection-test isolation,
+authorized acquisition, code/two-factor prompts, secret-safe errors, single-job
+handling, page reload continuity, cancellation and partial evidence finalization.
+For the entire repository suite, install `requirements-web.txt` as well and run
+`python3 -m unittest discover -s tests -v`.
+
+This removes the terminal/browser bridge and implicit connection settings.
+It cannot guarantee that Telegram endpoints are reachable on every network.
+Live account authorization and acquisition must still be confirmed locally;
+no real Telegram credentials were used during development.

@@ -5,6 +5,7 @@ import asyncio
 import os
 import ssl
 import time
+from urllib.parse import unquote, urlparse
 from pathlib import Path
 from typing import Any, Callable
 
@@ -22,6 +23,31 @@ TELEGRAM_TRANSPORTS = (
     ("obfuscated MTProto", ConnectionTcpObfuscated),
     ("HTTP MTProto", ConnectionHttp),
 )
+
+
+def parse_proxy_url(value: str) -> dict[str, Any]:
+    """Parse a SOCKS/HTTP proxy URL into Telethon's proxy configuration."""
+    parsed = urlparse(value.strip())
+    proxy_type = parsed.scheme.lower()
+    if proxy_type not in {"socks5", "socks4", "http"}:
+        raise ValueError("Proxy scheme must be socks5, socks4, or http.")
+    if not parsed.hostname:
+        raise ValueError("Proxy URL must include a host.")
+    try:
+        port = parsed.port
+    except ValueError as error:
+        raise ValueError("Proxy URL contains an invalid port.") from error
+    if port is None:
+        raise ValueError("Proxy URL must include a port.")
+
+    return {
+        "proxy_type": proxy_type,
+        "addr": parsed.hostname,
+        "port": port,
+        "username": unquote(parsed.username) if parsed.username else None,
+        "password": unquote(parsed.password) if parsed.password else None,
+        "rdns": True,
+    }
 
 
 def connection_error_detail(error: Exception) -> str:
@@ -77,6 +103,7 @@ async def disconnect_client(client: TelegramClient, log: Callable[[str], None]) 
 async def connect_client(
     api_id: int, api_hash: str, session: Path | StringSession, *,
     proxy: dict[str, Any] | None = None,
+    transports: tuple | None = None,
     log: Callable[[str], None] = print,
     status: Callable[[str], None] = lambda message: None,
     active: Callable[[TelegramClient | None], None] = lambda client: None,
@@ -92,7 +119,7 @@ async def connect_client(
         f"{'explicit proxy' if proxy else 'direct (no proxy)'}; "
         f"socket={SOCKET_TIMEOUT_SECONDS}s, budget={budget}s, retries=1.")
     failures: list[str] = []
-    for name, transport in TELEGRAM_TRANSPORTS:
+    for name, transport in (TELEGRAM_TRANSPORTS if transports is None else transports):
         candidate = None
         connected = False
         started = time.monotonic()
