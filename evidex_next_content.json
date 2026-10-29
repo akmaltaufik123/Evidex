@@ -1,0 +1,328 @@
+{
+  "en": {
+    "workspace": "LOCAL WORKSPACE",
+    "eyebrow": "TELEGRAM EVIDENCE ACQUISITION",
+    "hero": "Save evidence, one clear step at a time.",
+    "intro": "Connect your own Telegram account, choose a source you may access, and keep a verifiable copy on this computer.",
+    "guide": "Illustrated guide",
+    "guideClose": "Close guide",
+    "guideBack": "Previous",
+    "guideNext": "Next",
+    "guideDone": "Done",
+    "illustration": "AI-generated illustration, not a live screenshot. Telegram screens may look different.",
+    "guideCount": "Guide {n} of {total}",
+    "stepCount": "Step {n} of 5",
+    "steps": [
+      "Connect Telegram",
+      "Choose a source",
+      "Choose content",
+      "Review and start",
+      "Progress and results"
+    ],
+    "profile": "Collect Telegram evidence",
+    "apiId": "Telegram API ID",
+    "apiHash": "API hash",
+    "credentialsHint": "First time? Open the illustrated guide. Your API details are not a Telegram bot token. They are not saved in browser storage.",
+    "phone": "Your Telegram phone number",
+    "target": "Telegram source",
+    "targetPlaceholder": "@username, public t.me link or supported numeric ID",
+    "sourceHint": "Open the Telegram group/channel profile to find its public link or username. EVIDEX does not automatically join private invite links.",
+    "case": "Case / reference name",
+    "limit": "Message limit",
+    "limitPlaceholder": "Blank = all available messages",
+    "mediaCheck": "Include photos, videos and documents, with file hashes",
+    "authorizedCheck": "I confirm that I am authorized to collect evidence from this source.",
+    "advanced": "Advanced settings (optional)",
+    "session": "Existing session file (optional)",
+    "proxy": "Proxy URL (optional)",
+    "advancedHint": "Leave these blank for a direct connection and the managed account session. Never share your session file.",
+    "test": "Test direct connection",
+    "testHint": "This tests a fresh, direct transport connection only. It does not log in, read messages or change saved sessions.",
+    "next": "Continue",
+    "back": "Back",
+    "start": "Start saving evidence",
+    "reviewTitle": "Check before you start",
+    "reviewHint": "Telegram may ask you for a login code and, if enabled, your two-factor password after you start.",
+    "allMessages": "All available messages",
+    "yes": "Yes",
+    "no": "No",
+    "progressHint": "Follow the live status on the right. Login prompts appear there when needed. You can reload this page without stopping the job.",
+    "status": "LIVE JOB STATUS",
+    "flow": "Connection → Account login → Collect messages → File integrity record",
+    "messageCount": "Messages saved",
+    "mediaCount": "Media files saved",
+    "continueLogin": "Continue login",
+    "codePrompt": "Enter the Telegram login code",
+    "passwordPrompt": "Enter your Telegram two-factor password",
+    "loginHint": "Only enter the code for the login you initiated. Do not send codes, API hashes or passwords to anyone.",
+    "completeTitle": "Finished. Your evidence is ready.",
+    "completeHint": "Use View messages or Open evidence folder below to see your results.",
+    "completeSummary": "{messages} messages and {media} media files saved. The file integrity record is ready.",
+    "output": "Evidence directory: ",
+    "saved": "Saved evidence (including earlier jobs)",
+    "empty": "No saved evidence yet",
+    "openFolder": "Open evidence folder",
+    "refresh": "Refresh results",
+    "cancel": "Stop and save results so far",
+    "ready": "Ready. Enter your API details or open the illustrated guide.",
+    "technical": "Technical details",
+    "keepOpen": "Keep the server terminal open. A running job continues when this page is reloaded. Stop and finalize a job before stopping the server.",
+    "footer": "Files stay on the computer running EVIDEX. The folder contains messages, media, metadata, an acquisition report and SHA-256 hashes. Keep the original files unchanged.",
+    "opening": "Opening evidence folder…",
+    "opened": "Folder open request sent. If no window appears, open this path manually:\n",
+    "offline": "The local server is unavailable. Keep its terminal open, then reload this page.",
+    "requestError": "The server rejected the request. Reload this page.",
+    "checkFields": "Check the API details and fields for this step.",
+    "authorizedRequired": "Please confirm your authorization before starting.",
+    "view": "View messages",
+    "viewerTitle": "Read saved messages",
+    "search": "Search message text",
+    "searchPlaceholder": "Word or phrase",
+    "searchButton": "Search",
+    "previous": "Previous page",
+    "nextPage": "Next page",
+    "closeViewer": "Close messages",
+    "noMessages": "No matching messages found.",
+    "messageMeta": "Message {id} · sender {sender} · {date}",
+    "downloadMedia": "Download attachment",
+    "loading": "Loading…",
+    "messagePage": "Showing {count} messages · page {page}",
+    "stages": {
+      "idle": "Ready",
+      "connecting": "Connecting to Telegram",
+      "transport_passed": "Direct connection test passed (login not tested)",
+      "authorizing": "Checking account login",
+      "login": "Waiting for your login details",
+      "acquiring": "Saving messages and media",
+      "complete": "Finished",
+      "cancelled": "Stopped; available results saved",
+      "failed": "Could not finish"
+    },
+    "errorFallback": "The operation could not finish. Expand Technical details for the diagnostic information.",
+    "manualFolder": "Could not open a file manager. Open this folder manually: "
+  },
+  "ms": {
+    "workspace": "RUANG KERJA TEMPATAN",
+    "eyebrow": "PENGAMBILAN BUKTI TELEGRAM",
+    "hero": "Simpan bukti, satu langkah pada satu masa.",
+    "intro": "Sambungkan akaun Telegram sendiri, pilih sumber yang anda dibenarkan akses, kemudian simpan salinan yang boleh disemak pada komputer ini.",
+    "guide": "Panduan bergambar",
+    "guideClose": "Tutup panduan",
+    "guideBack": "Sebelumnya",
+    "guideNext": "Seterusnya",
+    "guideDone": "Selesai",
+    "illustration": "Ilustrasi dijana AI, bukan tangkap layar sebenar. Paparan Telegram mungkin berbeza.",
+    "guideCount": "Panduan {n} daripada {total}",
+    "stepCount": "Langkah {n} daripada 5",
+    "steps": [
+      "Sambungkan Telegram",
+      "Pilih sumber",
+      "Pilih kandungan",
+      "Semak dan mulakan",
+      "Kemajuan dan hasil"
+    ],
+    "profile": "Kumpulkan bukti Telegram",
+    "apiId": "API ID Telegram",
+    "apiHash": "API hash",
+    "credentialsHint": "Kali pertama? Buka panduan bergambar. Maklumat API ini bukan token bot Telegram. Ia tidak disimpan dalam storan browser.",
+    "phone": "Nombor telefon Telegram anda",
+    "target": "Sumber Telegram",
+    "targetPlaceholder": "@username, pautan awam t.me atau ID angka yang disokong",
+    "sourceHint": "Buka profil kumpulan/saluran Telegram untuk cari pautan awam atau nama pengguna. EVIDEX tidak menyertai pautan jemputan peribadi secara automatik.",
+    "case": "Nama kes / rujukan",
+    "limit": "Had mesej",
+    "limitPlaceholder": "Kosong = semua mesej yang tersedia",
+    "mediaCheck": "Sertakan gambar, video dan dokumen, bersama hash fail",
+    "authorizedCheck": "Saya mengesahkan bahawa saya dibenarkan mengumpulkan bukti daripada sumber ini.",
+    "advanced": "Tetapan lanjutan (pilihan)",
+    "session": "Fail sesi sedia ada (pilihan)",
+    "proxy": "URL proxy (pilihan)",
+    "advancedHint": "Biarkan kosong untuk sambungan terus dan sesi akaun yang diurus aplikasi. Jangan kongsi fail sesi anda.",
+    "test": "Uji sambungan terus",
+    "testHint": "Ujian ini hanya menyemak sambungan baharu secara terus. Ia tidak log masuk, membaca mesej atau mengubah sesi tersimpan.",
+    "next": "Teruskan",
+    "back": "Kembali",
+    "start": "Mula simpan bukti",
+    "reviewTitle": "Semak sebelum bermula",
+    "reviewHint": "Selepas anda bermula, Telegram mungkin meminta kod log masuk dan kata laluan dua faktor, jika diaktifkan.",
+    "allMessages": "Semua mesej yang tersedia",
+    "yes": "Ya",
+    "no": "Tidak",
+    "progressHint": "Ikuti status langsung di sebelah kanan. Ruang log masuk muncul di situ jika diperlukan. Anda boleh memuat semula halaman tanpa menghentikan kerja.",
+    "status": "STATUS KERJA LANGSUNG",
+    "flow": "Sambungan → Log masuk akaun → Simpan mesej → Rekod integriti fail",
+    "messageCount": "Mesej disimpan",
+    "mediaCount": "Fail media disimpan",
+    "continueLogin": "Teruskan log masuk",
+    "codePrompt": "Masukkan kod log masuk Telegram",
+    "passwordPrompt": "Masukkan kata laluan dua faktor Telegram",
+    "loginHint": "Masukkan hanya kod bagi log masuk yang anda sendiri mulakan. Jangan hantar kod, API hash atau kata laluan kepada orang lain.",
+    "completeTitle": "Selesai. Bukti anda sedia dilihat.",
+    "completeHint": "Gunakan Lihat mesej atau Buka folder bukti di bawah untuk melihat hasil.",
+    "completeSummary": "{messages} mesej dan {media} fail media disimpan. Rekod integriti fail telah disediakan.",
+    "output": "Folder bukti: ",
+    "saved": "Bukti tersimpan (termasuk kerja terdahulu)",
+    "empty": "Belum ada bukti tersimpan",
+    "openFolder": "Buka folder bukti",
+    "refresh": "Muat semula hasil",
+    "cancel": "Hentikan dan simpan hasil setakat ini",
+    "ready": "Sedia. Masukkan maklumat API atau buka panduan bergambar.",
+    "technical": "Butiran teknikal",
+    "keepOpen": "Biarkan terminal server terbuka. Kerja diteruskan apabila halaman dimuat semula. Hentikan dan simpan hasil sebelum menutup server.",
+    "footer": "Fail kekal pada komputer yang menjalankan EVIDEX. Folder mengandungi mesej, media, metadata, laporan pengambilan dan hash SHA-256. Kekalkan fail asal tanpa perubahan.",
+    "opening": "Sedang membuka folder bukti…",
+    "opened": "Permintaan membuka folder dihantar. Jika tiada tetingkap muncul, buka lokasi ini secara manual:\n",
+    "offline": "Server tempatan tidak dapat dihubungi. Biarkan terminalnya terbuka, kemudian muat semula halaman.",
+    "requestError": "Server menolak permintaan. Muat semula halaman ini.",
+    "checkFields": "Semak maklumat API dan medan untuk langkah ini.",
+    "authorizedRequired": "Sahkan kebenaran anda sebelum bermula.",
+    "view": "Lihat mesej",
+    "viewerTitle": "Baca mesej tersimpan",
+    "search": "Cari teks mesej",
+    "searchPlaceholder": "Perkataan atau frasa",
+    "searchButton": "Cari",
+    "previous": "Halaman sebelumnya",
+    "nextPage": "Halaman seterusnya",
+    "closeViewer": "Tutup mesej",
+    "noMessages": "Tiada mesej sepadan ditemui.",
+    "messageMeta": "Mesej {id} · pengirim {sender} · {date}",
+    "downloadMedia": "Muat turun lampiran",
+    "loading": "Sedang memuatkan…",
+    "messagePage": "Memaparkan {count} mesej · halaman {page}",
+    "stages": {
+      "idle": "Sedia",
+      "connecting": "Sedang menyambung ke Telegram",
+      "transport_passed": "Ujian sambungan terus berjaya (log masuk belum diuji)",
+      "authorizing": "Sedang menyemak log masuk akaun",
+      "login": "Menunggu maklumat log masuk anda",
+      "acquiring": "Sedang menyimpan mesej dan media",
+      "complete": "Selesai",
+      "cancelled": "Dihentikan; hasil tersedia disimpan",
+      "failed": "Kerja tidak dapat diselesaikan"
+    },
+    "errorFallback": "Operasi tidak dapat diselesaikan. Buka Butiran teknikal untuk maklumat diagnosis.",
+    "manualFolder": "Pengurus fail tidak dapat dibuka. Buka folder ini secara manual: "
+  },
+  "guide": [
+    {
+      "image": "01-telegram-portal.webp",
+      "en": {
+        "title": "Sign in to Telegram’s developer portal",
+        "steps": [
+          "Open my.telegram.org using the official link below. Enter the phone number linked to your own Telegram account.",
+          "Follow the portal’s verification instructions. Check your Telegram app for the message if the portal directs you there.",
+          "The portal login code belongs on my.telegram.org. It is separate from any EVIDEX login request later."
+        ]
+      },
+      "ms": {
+        "title": "Log masuk ke portal pembangun Telegram",
+        "steps": [
+          "Buka my.telegram.org melalui pautan rasmi di bawah. Masukkan nombor telefon akaun Telegram anda sendiri.",
+          "Ikuti arahan pengesahan portal. Semak mesej dalam aplikasi Telegram jika portal mengarahkan anda ke situ.",
+          "Kod log masuk portal dimasukkan di my.telegram.org. Ia berasingan daripada permintaan log masuk EVIDEX kemudian."
+        ]
+      },
+      "url": "https://my.telegram.org"
+    },
+    {
+      "image": "02-api-details.webp",
+      "en": {
+        "title": "Get your API ID and API hash",
+        "steps": [
+          "Choose “API development tools”. Complete the application form requested by Telegram, including an application title and short name.",
+          "If an application already exists, use its existing API ID and API hash. Copy the numeric ID and hash into the matching EVIDEX fields.",
+          "Keep both private. This is a Telegram client application, not a bot; a BotFather token will not work."
+        ]
+      },
+      "ms": {
+        "title": "Dapatkan API ID dan API hash anda",
+        "steps": [
+          "Pilih “API development tools”. Lengkapkan borang aplikasi yang diminta Telegram, termasuk tajuk aplikasi dan nama pendek.",
+          "Jika aplikasi sudah wujud, gunakan API ID dan API hash sedia ada. Salin ID angka dan hash ke medan EVIDEX yang sepadan.",
+          "Simpan kedua-duanya secara peribadi. Ini aplikasi klien Telegram, bukan bot; token BotFather tidak boleh digunakan."
+        ]
+      },
+      "url": "https://core.telegram.org/api/obtaining_api_id"
+    },
+    {
+      "image": "03-connection-test.webp",
+      "en": {
+        "title": "Check EVIDEX connectivity",
+        "steps": [
+          "Choose your language at the top of EVIDEX. Enter your own API ID and API hash in step 1.",
+          "Select “Test direct connection”. A pass means the transport connected; it does not mean your account has logged in.",
+          "If the test fails, open Technical details and keep the safe diagnostic message. Do not delete session files or share credentials."
+        ]
+      },
+      "ms": {
+        "title": "Semak sambungan EVIDEX",
+        "steps": [
+          "Pilih bahasa di bahagian atas EVIDEX. Masukkan API ID dan API hash anda pada langkah 1.",
+          "Pilih “Uji sambungan terus”. Kejayaan bermaksud sambungan pengangkutan berjaya, bukan akaun telah log masuk.",
+          "Jika ujian gagal, buka Butiran teknikal dan simpan mesej diagnosis yang selamat. Jangan padam fail sesi atau kongsi kelayakan akses."
+        ]
+      },
+      "url": null
+    },
+    {
+      "image": "04-telegram-source.webp",
+      "en": {
+        "title": "Find the Telegram source",
+        "steps": [
+          "In Telegram, open the group or channel you are authorized to access. Select its name to view its profile.",
+          "Find the public link or username, such as t.me/example or @example, and copy it into EVIDEX’s source field.",
+          "Private invite links are not joined automatically. For a private source, the account must already have access and the source reference must be supported."
+        ]
+      },
+      "ms": {
+        "title": "Cari sumber Telegram",
+        "steps": [
+          "Dalam Telegram, buka kumpulan atau saluran yang anda dibenarkan akses. Pilih namanya untuk melihat profil.",
+          "Cari pautan awam atau nama pengguna, seperti t.me/example atau @example, kemudian salin ke medan sumber EVIDEX.",
+          "Pautan jemputan peribadi tidak disertai secara automatik. Untuk sumber peribadi, akaun mesti sudah mempunyai akses dan rujukan sumber perlu disokong."
+        ]
+      },
+      "url": null
+    },
+    {
+      "image": "05-telegram-login.webp",
+      "en": {
+        "title": "Authorize your own account",
+        "steps": [
+          "Choose the message limit and media option, then review the details and confirm your authorization before starting.",
+          "When EVIDEX asks for a code, follow Telegram’s delivery instructions for the login you just initiated. Only enter it in your own local EVIDEX page.",
+          "If your account has two-step verification enabled, enter that password when prompted. An already-authorized session may skip these prompts. Never send the code or password to another person."
+        ]
+      },
+      "ms": {
+        "title": "Sahkan akaun anda sendiri",
+        "steps": [
+          "Pilih had mesej dan pilihan media, kemudian semak maklumat dan sahkan kebenaran sebelum bermula.",
+          "Apabila EVIDEX meminta kod, ikuti arahan penghantaran Telegram bagi log masuk yang anda baru mulakan. Masukkan hanya pada halaman EVIDEX tempatan anda sendiri.",
+          "Jika akaun mengaktifkan pengesahan dua langkah, masukkan kata laluan itu apabila diminta. Sesi yang sudah disahkan mungkin melangkau langkah ini. Jangan hantar kod atau kata laluan kepada orang lain."
+        ]
+      },
+      "url": "https://telegram.org/faq"
+    },
+    {
+      "image": "06-evidence-results.webp",
+      "en": {
+        "title": "Read and preserve the results",
+        "steps": [
+          "Wait for the completion notice, or use “Stop and save results so far” if you need to stop.",
+          "Select a saved case. Use “View messages” to search and read messages, or “Open evidence folder” for the original files and media.",
+          "Keep the original folder unchanged. The SHA-256 manifest checks whether files still match the saved hashes; it does not by itself prove authorship or truth."
+        ]
+      },
+      "ms": {
+        "title": "Baca dan simpan hasil bukti",
+        "steps": [
+          "Tunggu notifikasi selesai, atau pilih “Hentikan dan simpan hasil setakat ini” jika perlu berhenti.",
+          "Pilih kes tersimpan. Gunakan “Lihat mesej” untuk mencari dan membaca mesej, atau “Buka folder bukti” untuk fail asal dan media.",
+          "Kekalkan folder asal tanpa perubahan. Manifest SHA-256 menyemak padanan fail dengan hash tersimpan; ia tidak dengan sendirinya membuktikan pengarang atau kebenaran kandungan."
+        ]
+      },
+      "url": null
+    }
+  ]
+}

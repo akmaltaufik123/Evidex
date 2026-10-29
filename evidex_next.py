@@ -27,7 +27,7 @@ from telegram_connection import (
     connection_error_detail, parse_proxy_url,
 )
 
-VERSION = "0.1.1"
+VERSION = "0.2.0"
 # Both TCP transports worked in the operator's standalone test. HTTP/TLS did not.
 TRANSPORTS = TELEGRAM_TRANSPORTS[:2]
 
@@ -92,7 +92,7 @@ class Engine:
         if self.task is not None and not self.task.done():
             raise ValueError("A job is already running. Cancel it or wait for completion.")
         self.reset()
-        self.state.update(stage="connecting", busy=True)
+        self.state.update(stage="connecting", busy=True, mode=config["mode"])
         self.task = asyncio.create_task(self.run(config))
         self.task.add_done_callback(self.finished)
 
@@ -343,7 +343,10 @@ def create_app() -> web.Application:
 
     async def index(request):
         html = Path(__file__).with_suffix(".html").read_text(encoding="utf-8")
-        return web.Response(text=html.replace("__TOKEN__", token), content_type="text/html", headers={
+        content = Path(__file__).with_name("evidex_next_content.json").read_text(encoding="utf-8")
+        # The trusted translation catalog is JSON, not executable HTML.
+        catalog = json.dumps(json.loads(content), ensure_ascii=False).replace("<", r"\u003c")
+        return web.Response(text=html.replace("__TOKEN__", token).replace("__COPY__", catalog), content_type="text/html", headers={
             "Cache-Control": "no-store", "X-Frame-Options": "DENY",
             "Content-Security-Policy": "default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'"})
 
@@ -389,6 +392,51 @@ def create_app() -> web.Application:
             return web.json_response({"error": f"Could not open a file manager. Open this folder manually: {case}"}, status=503)
         return web.json_response({"ok": True, "path": str(case)})
 
+    async def guide_asset(request):
+        name = request.match_info["name"]
+        if not re.fullmatch(r"0[1-6]-[a-z-]+\.webp", name):
+            raise web.HTTPNotFound()
+        asset = Path(__file__).with_name("guide_assets") / name
+        if not asset.is_file():
+            raise web.HTTPNotFound()
+        return web.FileResponse(asset, headers={"Content-Type": "image/webp", "Cache-Control": "public, max-age=3600"})
+
+    async def messages(request):
+        case = evidence_case(request.query.get("case"))
+        offset = int(request.query.get("offset", "0"))
+        if offset < 0 or offset > 1_000_000:
+            raise ValueError()
+        query = request.query.get("q", "").casefold()[:200]
+        records, matched, more = [], 0, False
+        path = case / "messages.jsonl"
+        if path.resolve().parent != case or not path.is_file():
+            raise web.HTTPNotFound()
+        with path.open(encoding="utf-8") as handle:
+            for line in handle:
+                try:
+                    record = json.loads(line)
+                except ValueError:
+                    continue
+                if not isinstance(record, dict) or query not in str(record.get("text", "")).casefold():
+                    continue
+                if matched >= offset:
+                    if len(records) == 50:
+                        more = True
+                        break
+                    # Only evidence fields; no account/session configuration.
+                    records.append({key: record.get(key) for key in ("message_id", "sender_id", "date_utc", "text", "media")})
+                matched += 1
+        return web.json_response({"messages": records, "offset": offset, "more": more}, headers={"Cache-Control": "no-store"})
+
+    async def attachment(request):
+        case = evidence_case(request.query.get("case"))
+        relative = request.query.get("path", "")
+        path = (case / relative).resolve()
+        media = (case / "media").resolve()
+        if media.parent != case or not path.is_relative_to(media) or not path.is_file():
+            raise web.HTTPNotFound()
+        return web.FileResponse(path, headers={"Content-Disposition": "attachment", "X-Content-Type-Options": "nosniff", "Cache-Control": "no-store"})
+
     async def cleanup(app):
         await engine.close()
 
@@ -397,6 +445,9 @@ def create_app() -> web.Application:
     app.router.add_post("/api/run", run)
     app.router.add_post("/api/answer", answer)
     app.router.add_post("/api/cancel", cancel)
+    app.router.add_get("/guide-assets/{name}", guide_asset)
+    app.router.add_get("/api/messages", messages)
+    app.router.add_get("/api/attachment", attachment)
     app.router.add_get("/api/results", results)
     app.router.add_post("/api/open-folder", open_folder)
     app.on_cleanup.append(cleanup)

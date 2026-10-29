@@ -21,6 +21,33 @@ Open http://127.0.0.1:8000. For another port use `--port 8080`.
 This entry point does not require Textual or Textual Serve.
 If `~/EvidexNext` already exists, use a different new directory.
 
+## Languages and illustrated guidance (0.2.0)
+
+Choose **Bahasa Melayu** or **English** at the top of the page. The interface,
+five-step form, login prompts, completion notice and guide text switch languages
+without clearing your form. Only the language preference is saved in browser
+storage; API details and login credentials are not.
+
+Open **Panduan bergambar / Illustrated guide** for six separate AI-generated
+illustrations and readable instructions:
+
+1. Sign in to the official my.telegram.org portal.
+2. Obtain your own API ID and API hash in API development tools.
+3. Test EVIDEX's direct connection (not account authorization).
+4. Locate a public Telegram source link or username in its profile.
+5. Complete the login you initiated, including two-factor verification if enabled.
+6. Read the saved messages and preserve the original evidence files.
+
+The images are illustrative, not actual screenshots or official Telegram assets.
+All depicted codes and credentials are masked. Telegram's screens may differ.
+Official sources are linked next to the relevant guide steps. See
+[guide_assets/README.md](guide_assets/README.md) for the asset/prompt inventory.
+
+The form now reveals one step at a time: connection, source, content, review,
+and progress. Proxy/session options remain in advanced settings. The review does
+not display your API hash. The server's existing authorization and acquisition
+flow is unchanged.
+
 ## Workflow
 
 1. Enter your Telegram API ID and API hash from https://my.telegram.org.
@@ -36,7 +63,10 @@ If `~/EvidexNext` already exists, use a different new directory.
 
 **Saved evidence** lists up to 50 recent case folders, including jobs completed
 before the server restarted. Select a case and open it without another extraction.
-Use **Refresh results** to reload the list. In WSL, the button converts the Linux
+Use **Refresh results** to reload the list. **View messages / Lihat mesej** opens a
+read-only searchable message viewer with 50 messages per page and attachment
+downloads. Message text is displayed as plain text, never as executable HTML.
+Reading and downloading do not rewrite the original evidence or its hashes. In WSL, the button converts the Linux
 path and opens Windows File Explorer. Native Windows, macOS and Linux file
 managers are also supported. The file manager opens on the Python host. If no
 file manager is available, the page gives a manual folder path. Opening a folder

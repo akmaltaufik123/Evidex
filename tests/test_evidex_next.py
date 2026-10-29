@@ -249,6 +249,55 @@ class NativeHttpTests(unittest.IsolatedAsyncioTestCase):
         (case / "messages.txt").write_text("Evidence sentinel")
         return case
 
+    async def test_bilingual_catalog_and_all_six_guide_images_are_served(self):
+        match = re.search(r'<script type="application/json" id="i18n">(.*?)</script>', self.html, re.S)
+        content = json.loads(match.group(1))
+        self.assertEqual(set(content["en"]), set(content["ms"]))
+        self.assertEqual(len(content["guide"]), 6)
+        self.assertNotIn("__COPY__", self.html)
+        for page in content["guide"]:
+            response = await self.client.get("/guide-assets/" + page["image"])
+            self.assertEqual(response.status, 200)
+            self.assertEqual(response.content_type, "image/webp")
+            self.assertGreater(len(await response.read()), 1000)
+        self.assertEqual((await self.client.get("/guide-assets/not-an-image.txt")).status, 404)
+
+    async def test_message_reader_search_pagination_and_integrity(self):
+        case = self.saved_case()
+        records = [dict(message_id=n, sender_id=7, date_utc="2026-10-30T00:00:00+00:00",
+                        text="needle <script>example</script>" if n == 3 else "Fixture text", media=None) for n in range(55)]
+        path = case / "messages.jsonl"
+        path.write_text("\n".join(json.dumps(item) for item in records) + "\n")
+        before = path.read_bytes()
+        response = await self.client.get("/api/messages", headers=self.headers, params={"case": case.name})
+        data = await response.json()
+        self.assertEqual(len(data["messages"]), 50)
+        self.assertTrue(data["more"])
+        response = await self.client.get("/api/messages", headers=self.headers, params={"case": case.name, "offset": "50"})
+        data = await response.json()
+        self.assertEqual(len(data["messages"]), 5)
+        self.assertFalse(data["more"])
+        response = await self.client.get("/api/messages", headers=self.headers, params={"case": case.name, "q": "NEEDLE"})
+        data = await response.json()
+        self.assertEqual([item["message_id"] for item in data["messages"]], [3])
+        self.assertEqual(before, path.read_bytes())
+        self.assertEqual((await self.client.get("/api/messages", headers=self.headers, params={"case": case.name, "offset": "-1"})).status, 400)
+        self.assertEqual((await self.client.get("/api/messages", params={"case": case.name})).status, 403)
+
+    async def test_attachment_download_is_limited_to_case_media(self):
+        case = self.saved_case()
+        (case / "media").mkdir()
+        attachment = case / "media" / "sample.bin"
+        attachment.write_bytes(b"fixture attachment")
+        response = await self.client.get("/api/attachment", headers=self.headers, params={"case": case.name, "path": "media/sample.bin"})
+        self.assertEqual(response.status, 200)
+        self.assertEqual(await response.read(), b"fixture attachment")
+        self.assertEqual(response.headers["Content-Disposition"], "attachment")
+        for relative in ("../outside", "messages.txt", "/etc/passwd"):
+            response = await self.client.get("/api/attachment", headers=self.headers, params={"case": case.name, "path": relative})
+            self.assertEqual(response.status, 404)
+        self.assertEqual(attachment.read_bytes(), b"fixture attachment")
+
     async def test_saved_results_survive_server_state_reset(self):
         case = self.saved_case()
         response = await self.client.get("/api/results", headers=self.headers)

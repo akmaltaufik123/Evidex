@@ -1,117 +1,172 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>EVIDEX Next · Local workspace</title>
-<style>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EVIDEX Next · Local workspace</title><style>
 :root{color-scheme:dark;font-family:Inter,system-ui,sans-serif;background:#080e18;color:#e6edf7}*{box-sizing:border-box}body{margin:0}header{padding:24px max(24px,calc((100vw - 1160px)/2));border-bottom:1px solid #203047;background:#0b1321;display:flex;justify-content:space-between;align-items:center}header strong{font-size:24px;letter-spacing:3px}header span{color:#6be4bd;font-size:12px;letter-spacing:1px}.wrap{max-width:1160px;margin:34px auto;padding:0 24px}h1{font-size:30px;letter-spacing:-1px;margin:0 0 8px}p{color:#a3b3c9;line-height:1.6;margin:8px 0 24px}.grid{display:grid;grid-template-columns:1.1fr 1fr;gap:24px;align-items:start}.card{background:#101a2a;border:1px solid #22324a;border-radius:16px;padding:24px}.eyebrow{font-size:11px;letter-spacing:2px;color:#71dbb8;margin:0 0 16px}h2{font-size:18px;margin:0 0 20px}label{display:block;font-size:13px;color:#c2cfe0;margin:16px 0 7px}select,input:not([type=checkbox]){display:block;width:100%;background:#080f1c;color:#f0f5fc;border:1px solid #34435a;border-radius:8px;padding:12px;font:inherit;min-width:0}input:focus{outline:2px solid #71dbb8;outline-offset:2px}.row{display:grid;grid-template-columns:1fr 1fr;gap:16px}.check{display:flex;gap:10px;align-items:flex-start;line-height:1.5}.check input{margin-top:4px;accent-color:#71dbb8}button{background:#71dbb8;color:#09241b;border:0;border-radius:8px;padding:12px 18px;font:600 13px system-ui;cursor:pointer}button.secondary{background:#192b42;border:1px solid #3b506b;color:#d6e3f5}button.danger{background:#361c29;color:#ffa8bc;border:1px solid #6a3547}button:disabled{opacity:.4;cursor:default}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}details{margin-top:24px;border-top:1px solid #22324a;padding-top:18px}summary{color:#99b1ce;font-size:13px;cursor:pointer}.hint{font-size:12px;color:#8ea1bb;line-height:1.6;margin-top:10px}.stage{font-size:24px;color:#71dbb8;margin:4px 0 20px;text-transform:capitalize}.stats{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0}.stat{background:#0b1321;padding:16px;border-radius:10px}.stat b{display:block;font-size:28px}.stat span{font-size:12px;color:#8ea1bb}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#080f1c;border-radius:10px;padding:16px;min-height:180px;max-height:350px;overflow:auto;color:#b6c9df;font:12px/1.8 ui-monospace,monospace}#notice{color:#ffc48d;white-space:pre-wrap;margin:16px 0}#prompt{border:1px solid #71dbb8;background:#0c2525;border-radius:10px;padding:18px;margin-top:20px}#output{overflow-wrap:anywhere;color:#a9d8c9;font-size:12px;line-height:1.7}footer{font-size:12px;color:#7f91aa;margin:24px 0}.steps{font-size:12px;color:#829bb8;margin-bottom:20px;line-height:1.7}fieldset{border:0;padding:0;margin:0;min-width:0}[hidden]{display:none!important}@media(max-width:760px){.grid{grid-template-columns:1fr}.row{grid-template-columns:1fr}header{padding:20px}.wrap{padding:0 16px;margin-top:24px}header span{max-width:140px;text-align:right}}
 #completion{background:#10362c;border:1px solid #65d6ac;border-radius:10px;padding:16px;margin:16px 0;color:#d4ffeb}#completion p{color:#bdebd8;margin:8px 0;font-size:13px}#saved-results{border-top:1px solid #22324a;margin-top:22px;padding-top:4px}#folder-notice,#selected-output{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.7;margin-top:12px;color:#b3c9df}select{width:100%;background:#080f1c;color:#f0f5fc;border:1px solid #34435a;border-radius:8px;padding:12px;font:inherit}#completion span{font-size:12px}
-</style>
-</head>
-<body>
-<header><strong>EVIDEX <small style="font-size:13px;color:#8ca9c9;letter-spacing:1px">NEXT</small></strong><span>LOCAL WORKSPACE · v0.1.1</span></header>
-<main class="wrap">
-<div class="eyebrow">TELEGRAM EVIDENCE ACQUISITION</div>
-<h1>A clear path from connection to evidence.</h1>
-<p>Test your connection, authorize your account, then collect and verify. Everything runs on this machine.</p>
-<div class="grid">
-<section class="card"><h2>Acquisition profile</h2>
-<form id="profile" autocomplete="off">
-<fieldset id="fields">
-<div class="row"><div><label for="api_id">Telegram API ID</label><input id="api_id" name="api_id" inputmode="numeric" required placeholder="Numeric ID"></div><div><label for="api_hash">API hash</label><input id="api_hash" name="api_hash" type="password" required placeholder="32-character API hash" autocomplete="off"></div></div>
-<div class="hint">Credentials stay in process memory and the form. They are not saved in browser storage or exported.</div>
-<div class="row"><div><label for="phone">Account phone</label><input id="phone" name="phone" type="tel" placeholder="+60123456789"></div><div><label for="target">Telegram target</label><input id="target" name="target" placeholder="@username, public link or ID"></div></div>
-<div class="row"><div><label for="case">Case reference</label><input id="case" name="case" value="case-001"></div><div><label for="limit">Message limit</label><input id="limit" name="limit" inputmode="numeric" placeholder="Blank = all messages"></div></div>
-<label class="check"><input type="checkbox" name="media" checked>Download media and calculate file hashes</label>
-<label class="check"><input type="checkbox" name="authorized">I am authorized to acquire evidence from this target.</label>
-<details><summary>Existing session and proxy settings</summary><label for="session">Existing session file (optional)</label><input id="session" name="session" placeholder="Absolute path to a .session file"><label for="proxy">Proxy URL (optional)</label><input id="proxy" name="proxy" type="password" placeholder="socks5://host:port" autocomplete="off"><div class="hint">Blank session uses the managed account session. Blank proxy connects directly. Neither is automatically selected from nearby files or generic proxy settings.</div></details>
-</fieldset>
-<div class="actions"><button id="test" type="button" class="secondary">1. Test direct connection</button><button id="start" type="submit">2. Start acquisition</button></div>
-<div class="hint">The connection test uses a fresh in-memory session. It does not log in, acquire messages or touch saved sessions.</div>
-</form>
-</section>
-<section class="card" aria-live="polite"><div class="eyebrow">LIVE JOB STATUS</div><div class="steps">Connection → Account authorization → Acquisition → Integrity manifest</div><div id="stage" class="stage">Idle</div><div id="notice" role="alert"></div>
-<div class="stats"><div class="stat"><b id="messages">0</b><span>Messages acquired</span></div><div class="stat"><b id="media">0</b><span>Media files saved</span></div></div>
-<form id="prompt" hidden autocomplete="off"><label id="promptlabel" for="answer">Telegram verification code</label><input id="answer" name="answer" type="password" autocomplete="off" required><div class="actions"><button type="submit">Continue login</button></div></form>
-<div id="completion" role="status" hidden><strong>Extraction complete. Your evidence is ready.</strong><p id="completion-summary"></p><span>Click “Open evidence folder” below to view the extracted messages and media.</span></div>
-<div id="output"></div>
-<div id="saved-results"><label for="saved-case">Saved evidence (including earlier jobs)</label><select id="saved-case"><option value="">No saved evidence yet</option></select><div id="selected-output"></div><div class="actions"><button id="open-folder" class="secondary" disabled>Open evidence folder</button><button id="refresh-results" class="secondary">Refresh results</button></div><div id="folder-notice" role="status"></div></div>
-<pre id="log">Ready. Enter your API credentials to test Telegram connectivity.</pre><button id="cancel" class="danger" disabled>Cancel and finalize</button>
-<div class="hint">A running job continues if you reload this page. Reopen the page to resume the login prompt or view progress. Use Cancel before stopping the server.</div>
-</section></div>
-<footer>Evidence is saved on the Python host as JSONL, text, metadata, acquisition report and SHA-256 manifest. Keep one EVIDEX process per Telegram session.</footer>
-</main>
+
+header{gap:20px;flex-wrap:wrap}.header-tools{display:flex;align-items:center;gap:12px}.header-tools label{margin:0;font-size:12px}.header-tools select{width:auto}.wizard-step{min-height:200px}.wizard-nav{display:flex;justify-content:space-between;gap:12px;margin-top:24px}#step-name{margin-top:12px}.step-line{height:4px;background:#23354b;border-radius:4px;margin:12px 0 22px}.step-line span{display:block;height:100%;background:#71dbb8;transition:width .2s}dialog{background:#101a2a;color:#e6edf7;border:1px solid #37546d;border-radius:16px;max-width:1000px;width:calc(100% - 32px);max-height:92vh;padding:24px}dialog::backdrop{background:#020711d9}.dialog-head{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px}.dialog-head h2{margin:0}.guide-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:24px;align-items:start}#guide-image{width:100%;border-radius:12px;aspect-ratio:3/2;object-fit:contain;background:#0a1423}#guide-steps{padding-left:22px;line-height:1.8;color:#c4d4e7}#guide-steps li{margin-bottom:12px}#guide-source{color:#71dbb8;overflow-wrap:anywhere}.message{padding:18px 0;border-bottom:1px solid #2a3a50}.message p{white-space:pre-wrap;overflow-wrap:anywhere;margin:10px 0;color:#e6edf7}.message small{color:#9ab3cf}#review{white-space:pre-wrap;line-height:1.9;background:#0a1423;padding:18px;border-radius:10px}.viewer-search{display:flex;align-items:end;gap:12px}.viewer-search label{flex:1}#message-list{max-height:55vh;overflow:auto}button:focus-visible,a:focus-visible,select:focus-visible{outline:2px solid #71dbb8;outline-offset:3px}@media(max-width:760px){.guide-grid{grid-template-columns:1fr}dialog{padding:16px}.viewer-search{flex-wrap:wrap}.header-tools{flex-wrap:wrap}}
+</style></head><body>
+<header><strong>EVIDEX <small style="font-size:13px;color:#8ca9c9">NEXT</small></strong><div class="header-tools"><span>v0.2.0</span><label for="language">Bahasa / Language</label><select id="language"><option value="ms">Bahasa Melayu</option><option value="en">English</option></select></div></header>
+<main class="wrap"><div data-i18n="eyebrow" class="eyebrow">TELEGRAM EVIDENCE ACQUISITION</div><h1 data-i18n="hero" >Save evidence, one clear step at a time.</h1><p data-i18n="intro" >Connect your own Telegram account, choose a source you may access, and keep a verifiable copy on this computer.</p><div class="actions"><button id="guide-open" type="button" class="secondary"><span data-i18n="guide" >Illustrated guide</span></button><button id="view-saved" type="button" class="secondary"><span data-i18n="saved" >Saved evidence (including earlier jobs)</span></button></div><br><div class="grid"><section class="card"><h2 data-i18n="profile" >Collect Telegram evidence</h2><div id="step-count" class="eyebrow"></div><h3 id="step-name"></h3><div class="step-line"><span id="step-progress"></span></div><form id="profile" autocomplete="off" novalidate><fieldset id="fields"><div class="wizard-step" data-step="1"><div class="row"><div><label for="api_id"><span data-i18n="apiId" >Telegram API ID</span></label><input id="api_id" name="api_id" type="text" inputmode="numeric" required placeholder="API ID"></div><div><label for="api_hash"><span data-i18n="apiHash" >API hash</span></label><input id="api_hash" name="api_hash" type="password" required autocomplete="off" placeholder="API hash"></div></div><p data-i18n="credentialsHint" class="hint">First time? Open the illustrated guide. Your API details are not a Telegram bot token. They are not saved in browser storage.</p></div><div class="wizard-step" data-step="2" hidden><div class="row"><div><label for="phone"><span data-i18n="phone" >Your Telegram phone number</span></label><input id="phone" name="phone" type="tel" placeholder="+60123456789"></div><div><label for="target"><span data-i18n="target" >Telegram source</span></label><input id="target" name="target" type="text" data-i18n-placeholder="targetPlaceholder"></div></div><p data-i18n="sourceHint" class="hint">Open the Telegram group/channel profile to find its public link or username. EVIDEX does not automatically join private invite links.</p></div><div class="wizard-step" data-step="3" hidden><div class="row"><div><label for="case"><span data-i18n="case" >Case / reference name</span></label><input id="case" name="case" type="text" value="case-001"></div><div><label for="limit"><span data-i18n="limit" >Message limit</span></label><input id="limit" name="limit" type="text" inputmode="numeric" data-i18n-placeholder="limitPlaceholder"></div></div><label class="check"><input type="checkbox" name="media" checked><span data-i18n="mediaCheck" >Include photos, videos and documents, with file hashes</span></label><details><summary><span data-i18n="advanced" >Advanced settings (optional)</span></summary><div><label for="session"><span data-i18n="session" >Existing session file (optional)</span></label><input id="session" name="session" type="text" ></div><div><label for="proxy"><span data-i18n="proxy" >Proxy URL (optional)</span></label><input id="proxy" name="proxy" type="password" autocomplete="off"></div><p data-i18n="advancedHint" class="hint">Leave these blank for a direct connection and the managed account session. Never share your session file.</p></details></div><div class="wizard-step" data-step="4" hidden><h3 data-i18n="reviewTitle" >Check before you start</h3><div id="review"></div><p data-i18n="reviewHint" class="hint">Telegram may ask you for a login code and, if enabled, your two-factor password after you start.</p><label class="check"><input type="checkbox" id="authorized" name="authorized"><span data-i18n="authorizedCheck" >I confirm that I am authorized to collect evidence from this source.</span></label></div><div class="wizard-step" data-step="5" hidden><p data-i18n="progressHint" >Follow the live status on the right. Login prompts appear there when needed. You can reload this page without stopping the job.</p></div></fieldset><div id="test-area"><button id="test" type="button" class="secondary"><span data-i18n="test" >Test direct connection</span></button><p data-i18n="testHint" class="hint">This tests a fresh, direct transport connection only. It does not log in, read messages or change saved sessions.</p></div><div class="wizard-nav"><button id="wizard-back" type="button" class="secondary" hidden><span data-i18n="back" >Back</span></button><button id="wizard-next" type="button" ><span data-i18n="next" >Continue</span></button><button id="start" type="submit" hidden><span data-i18n="start" >Start saving evidence</span></button></div></form></section><section class="card" aria-live="polite"><div data-i18n="status" class="eyebrow">LIVE JOB STATUS</div><div data-i18n="flow" class="steps">Connection → Account login → Collect messages → File integrity record</div><div id="stage" class="stage">Ready</div><div id="notice" role="alert"></div><div class="stats"><div class="stat"><b id="messages">0</b><span data-i18n="messageCount" >Messages saved</span></div><div class="stat"><b id="media">0</b><span data-i18n="mediaCount" >Media files saved</span></div></div><form id="prompt" hidden autocomplete="off"><label id="promptlabel" for="answer">Telegram login code</label><input id="answer" name="answer" type="password" autocomplete="off" required><p data-i18n="loginHint" class="hint">Only enter the code for the login you initiated. Do not send codes, API hashes or passwords to anyone.</p><div class="actions"><button type="submit"><span data-i18n="continueLogin" >Continue login</span></button></div></form><div id="completion" role="status" hidden><strong data-i18n="completeTitle" >Finished. Your evidence is ready.</strong><p id="completion-summary"></p><span data-i18n="completeHint" >Use View messages or Open evidence folder below to see your results.</span></div><div id="output"></div><div id="saved-results"><label for="saved-case"><span data-i18n="saved" >Saved evidence (including earlier jobs)</span></label><select id="saved-case"><option value="">No saved evidence yet</option></select><div id="selected-output"></div><div class="actions"><button id="view-messages" type="button" class="secondary" disabled><span data-i18n="view" >View messages</span></button><button id="open-folder" type="button" class="secondary" disabled><span data-i18n="openFolder" >Open evidence folder</span></button><button id="refresh-results" type="button" class="secondary"><span data-i18n="refresh" >Refresh results</span></button></div><div id="folder-notice" role="status"></div></div><details><summary data-i18n="technical" >Technical details</summary><pre data-i18n="ready" id="log">Ready. Enter your API details or open the illustrated guide.</pre></details><button id="cancel" type="button" class="danger" disabled><span data-i18n="cancel" >Stop and save results so far</span></button><p data-i18n="keepOpen" class="hint">Keep the server terminal open. A running job continues when this page is reloaded. Stop and finalize a job before stopping the server.</p></section></div><footer data-i18n="footer" >Files stay on the computer running EVIDEX. The folder contains messages, media, metadata, an acquisition report and SHA-256 hashes. Keep the original files unchanged.</footer></main><dialog id="guide-dialog" aria-labelledby="guide-title"><div class="dialog-head"><h2 id="guide-title"></h2><button id="guide-close" type="button" class="secondary"><span data-i18n="guideClose" >Close guide</span></button></div><div id="guide-count" class="eyebrow"></div><div class="guide-grid"><div><img id="guide-image" alt="" loading="lazy"><p data-i18n="illustration" class="hint">AI-generated illustration, not a live screenshot. Telegram screens may look different.</p></div><div><ol id="guide-steps"></ol><a id="guide-source" target="_blank" rel="noopener noreferrer"></a></div></div><div class="wizard-nav"><button id="guide-back" type="button" class="secondary"><span data-i18n="guideBack" >Previous</span></button><button id="guide-next" type="button" ><span data-i18n="guideNext" >Next</span></button></div></dialog><dialog id="viewer-dialog" aria-labelledby="viewer-title"><div class="dialog-head"><h2 data-i18n="viewerTitle" id="viewer-title">Read saved messages</h2><button id="viewer-close" type="button" class="secondary"><span data-i18n="closeViewer" >Close messages</span></button></div><form id="viewer-search" class="viewer-search"><label><span data-i18n="search" >Search message text</span><input id="message-query" data-i18n-placeholder="searchPlaceholder"></label><button type="submit"><span data-i18n="searchButton" >Search</span></button></form><div id="message-list"></div><p id="message-page" class="hint"></p><div class="wizard-nav"><button id="message-back" type="button" class="secondary"><span data-i18n="previous" >Previous page</span></button><button id="message-next" type="button" ><span data-i18n="nextPage" >Next page</span></button></div></dialog><script type="application/json" id="i18n">__COPY__</script>
 <script>
 'use strict';
 const token='__TOKEN__';
 const $=id=>document.getElementById(id);
+const COPY=JSON.parse($('i18n').textContent);
+let language='ms';
+try{const saved=localStorage.getItem('evidex-language');if(saved==='en'||saved==='ms')language=saved}catch{}
 let polling=false,lastPrompt=null,resultsFor=null,jobBusy=false,folderOpening=false;
-async function api(path,data){const options={headers:{'X-Evidex-Token':token}};if(data!==undefined){options.method='POST';options.headers['Content-Type']='application/json';options.body=JSON.stringify(data)}const response=await fetch('/api/'+path,options);if(!response.ok){let error;try{error=(await response.json()).error}catch{error='The local server rejected the request. Reload this page.'}throw new Error(error)}return response.json()}
+let wizardStep=1,guideStep=0,lastState=null,viewerCase='',viewerOffset=0,viewerMore=false;
+function t(key,values={}){let value=COPY[language][key];if(typeof value!=='string')return key;for(const [name,replacement]of Object.entries(values))value=value.replaceAll('{'+name+'}',String(replacement));return value}
+function friendlyError(message){
+  if(language==='en')return message;
+  const prefix=COPY.en.manualFolder;
+  if(message.startsWith(prefix))return t('manualFolder')+message.slice(prefix.length);
+  return t('errorFallback');
+}
+function showError(error,element='notice'){$(element).textContent=friendlyError(error.message);$('log').textContent+='\n'+error.message}
+async function api(path,data){
+  const options={headers:{'X-Evidex-Token':token}};
+  if(data!==undefined){options.method='POST';options.headers['Content-Type']='application/json';options.body=JSON.stringify(data)}
+  const response=await fetch('/api/'+path,options);
+  if(!response.ok){let message;try{message=(await response.json()).error}catch{message=t('requestError')}throw new Error(message||t('requestError'))}
+  return response.json();
+}
 function profile(mode){const form=new FormData($('profile'));return{...Object.fromEntries(form),mode,authorized:form.has('authorized'),media:form.has('media')}}
-async function start(mode){$('notice').textContent='';try{await api('run',profile(mode));await poll()}catch(error){$('notice').textContent=error.message}}
-$('profile').addEventListener('submit',event=>{event.preventDefault();start('acquire')});
+function applyLanguage(){
+  document.documentElement.lang=language;$('language').value=language;
+  for(const node of document.querySelectorAll('[data-i18n]'))node.textContent=t(node.dataset.i18n);
+  for(const node of document.querySelectorAll('[data-i18n-placeholder]'))node.placeholder=t(node.dataset.i18nPlaceholder);
+  showWizard(wizardStep);renderGuide();
+  if(lastState)renderState(lastState);
+  refreshResults().catch(error=>showError(error,'folder-notice'));
+  if($('viewer-dialog').open)loadMessages().catch(showError);
+}
+$('language').addEventListener('change',()=>{
+  language=$('language').value==='en'?'en':'ms';
+  try{localStorage.setItem('evidex-language',language)}catch{}
+  applyLanguage();
+});
+function showWizard(step){
+  wizardStep=Math.max(1,Math.min(5,step));
+  for(const panel of document.querySelectorAll('.wizard-step'))panel.hidden=Number(panel.dataset.step)!==wizardStep;
+  $('step-count').textContent=t('stepCount',{n:wizardStep});
+  $('step-name').textContent=COPY[language].steps[wizardStep-1];
+  $('step-progress').style.width=(wizardStep*20)+'%';
+  $('wizard-back').hidden=wizardStep===1;$('wizard-back').disabled=jobBusy;
+  $('wizard-next').hidden=wizardStep>=4;$('wizard-next').disabled=jobBusy;
+  $('start').hidden=wizardStep!==4;$('test-area').hidden=wizardStep!==1;
+  if(wizardStep===4){
+    const lines=[t('phone')+': '+$('phone').value,t('target')+': '+$('target').value,t('case')+': '+$('case').value,t('limit')+': '+($('limit').value||t('allMessages')),t('mediaCheck')+': '+(document.querySelector('[name=media]').checked?t('yes'):t('no'))];
+    $('review').textContent=lines.join('\n');
+  }
+}
+function validStep(){
+  if(wizardStep===1 && (!/^[0-9]+$/.test($('api_id').value.trim())||Number($('api_id').value)<=0||!/^[0-9a-fA-F]{32}$/.test($('api_hash').value.trim())))return false;
+  if(wizardStep===2 && (!/^\+[0-9]{7,15}$/.test($('phone').value.trim())||!$('target').value.trim()))return false;
+  if(wizardStep===3 && $('limit').value.trim() && (!/^[0-9]+$/.test($('limit').value.trim())||Number($('limit').value)<=0))return false;
+  return true;
+}
+$('wizard-next').addEventListener('click',()=>{if(!validStep()){$('notice').textContent=t('checkFields');return}$('notice').textContent='';showWizard(wizardStep+1)});
+$('wizard-back').addEventListener('click',()=>showWizard(wizardStep-1));
+async function start(mode){
+  $('notice').textContent='';
+  if(mode==='test'&&!validStep()){$('notice').textContent=t('checkFields');return}
+  if(mode==='acquire'&&!$('authorized').checked){$('notice').textContent=t('authorizedRequired');return}
+  try{await api('run',profile(mode));if(mode==='acquire')showWizard(5);await poll()}catch(error){showError(error)}
+}
+$('profile').addEventListener('submit',event=>{event.preventDefault();if(wizardStep===4)start('acquire');else if(wizardStep<4)$('wizard-next').click()});
 $('test').addEventListener('click',()=>start('test'));
-$('prompt').addEventListener('submit',async event=>{event.preventDefault();try{await api('answer',{answer:$('answer').value});$('answer').value='';await poll()}catch(error){$('notice').textContent=error.message}});
-$('cancel').addEventListener('click',async()=>{try{await api('cancel',{});await poll()}catch(error){$('notice').textContent=error.message}});
+$('prompt').addEventListener('submit',async event=>{event.preventDefault();try{await api('answer',{answer:$('answer').value});$('answer').value='';await poll()}catch(error){showError(error)}});
+$('cancel').addEventListener('click',async()=>{try{await api('cancel',{});await poll()}catch(error){showError(error)}});
+function renderGuide(){
+  const page=COPY.guide[guideStep],translated=page[language];
+  $('guide-title').textContent=translated.title;
+  $('guide-count').textContent=t('guideCount',{n:guideStep+1,total:COPY.guide.length});
+  $('guide-image').src='/guide-assets/'+page.image;$('guide-image').alt=translated.title+' — '+t('illustration');
+  $('guide-steps').replaceChildren();
+  for(const instruction of translated.steps){const item=document.createElement('li');item.textContent=instruction;$('guide-steps').append(item)}
+  $('guide-source').hidden=!page.url;
+  if(page.url){$('guide-source').href=page.url;$('guide-source').textContent=page.url}
+  $('guide-back').disabled=guideStep===0;
+  $('guide-next').textContent=t(guideStep===COPY.guide.length-1?'guideDone':'guideNext');
+}
+$('guide-open').addEventListener('click',()=>{renderGuide();$('guide-dialog').showModal()});
+$('guide-close').addEventListener('click',()=>$('guide-dialog').close());
+$('guide-back').addEventListener('click',()=>{guideStep=Math.max(0,guideStep-1);renderGuide()});
+$('guide-next').addEventListener('click',()=>{if(guideStep===COPY.guide.length-1){$('guide-dialog').close();return}guideStep++;renderGuide()});
+$('view-saved').addEventListener('click',()=>{$('saved-results').scrollIntoView({behavior:'smooth'});$('saved-case').focus()});
 function selectedResult(){
   const option=$('saved-case').selectedOptions[0];
-  $('selected-output').textContent=option?.dataset.path || '';
-  $('open-folder').disabled=folderOpening || jobBusy || !$('saved-case').value;
+  $('selected-output').textContent=option?.dataset.path||'';
+  $('open-folder').disabled=folderOpening||jobBusy||!$('saved-case').value;
+  $('view-messages').disabled=jobBusy||!$('saved-case').value;
 }
 async function refreshResults(preferred){
-  const previous=preferred || $('saved-case').value;
-  const {cases}=await api('results');
+  const previous=preferred||$('saved-case').value,{cases}=await api('results');
   $('saved-case').replaceChildren();
-  if(!cases.length){
-    const option=document.createElement('option');option.value='';option.textContent='No saved evidence yet';$('saved-case').append(option);
-  }
-  for(const item of cases){
-    const option=document.createElement('option');option.value=item.name;
-    option.textContent=item.name+' · '+item.status;option.dataset.path=item.path;
-    $('saved-case').append(option);
-  }
+  if(!cases.length){const option=document.createElement('option');option.value='';option.textContent=t('empty');$('saved-case').append(option)}
+  for(const item of cases){const option=document.createElement('option');option.value=item.name;option.textContent=item.name+' · '+(COPY[language].stages[item.status]||item.status);option.dataset.path=item.path;$('saved-case').append(option)}
   if(cases.some(item=>item.name===previous))$('saved-case').value=previous;
   selectedResult();
 }
 $('saved-case').addEventListener('change',selectedResult);
-$('refresh-results').addEventListener('click',()=>refreshResults().catch(error=>{$('folder-notice').textContent=error.message}));
+$('refresh-results').addEventListener('click',()=>refreshResults().catch(error=>showError(error,'folder-notice')));
 $('open-folder').addEventListener('click',async()=>{
-  folderOpening=true;$('open-folder').disabled=true;$('folder-notice').textContent='Opening evidence folder…';
-  try{const result=await api('open-folder',{case:$('saved-case').value});$('folder-notice').textContent='Folder open request sent. If no window appears, open this path manually:\n'+result.path}
-  catch(error){$('folder-notice').textContent=error.message}
+  folderOpening=true;selectedResult();$('folder-notice').textContent=t('opening');
+  try{const result=await api('open-folder',{case:$('saved-case').value});$('folder-notice').textContent=t('opened')+result.path}
+  catch(error){showError(error,'folder-notice')}
   finally{folderOpening=false;selectedResult()}
 });
 function renderState(state){
-  jobBusy=state.busy;
-  $('stage').textContent=state.stage.replaceAll('_',' ');
+  lastState=state;jobBusy=state.busy;
+  if(jobBusy&&state.mode==='acquire')showWizard(5);
+  $('stage').textContent=COPY[language].stages[state.stage]||state.stage;
   $('messages').textContent=state.messages;$('media').textContent=state.media;
-  $('fields').disabled=state.busy;$('test').disabled=state.busy;
-  $('start').disabled=state.busy;$('cancel').disabled=!state.busy;
+  $('fields').disabled=state.busy;$('test').disabled=state.busy;$('start').disabled=state.busy;$('cancel').disabled=!state.busy;
+  $('wizard-next').disabled=state.busy;$('wizard-back').disabled=state.busy;
   $('prompt').hidden=!state.prompt;
-  if(state.error)$('notice').textContent=state.error;
-  $('output').textContent=state.output?'Evidence directory: '+state.output:'';
+  if(state.error)$('notice').textContent=friendlyError(state.error);
+  $('output').textContent=state.output?t('output')+state.output:'';
   if(state.logs.length)$('log').textContent=state.logs.join('\n');
-  const complete=state.stage==='complete' && !state.busy;
+  const complete=state.stage==='complete'&&!state.busy;
   $('completion').hidden=!complete;
-  document.title=complete?'Extraction complete · EVIDEX Next':'EVIDEX Next · Local workspace';
-  if(complete)$('completion-summary').textContent=Number(state.messages).toLocaleString()+' messages and '+Number(state.media).toLocaleString()+' media files saved. The integrity manifest is ready.';
-  if(state.prompt){
-    $('promptlabel').textContent=state.prompt==='password'?'Telegram two-factor password':'Telegram verification code';
-    if(lastPrompt!==state.prompt)$('answer').focus();
-  }
+  document.title=complete?t('completeTitle')+' · EVIDEX Next':'EVIDEX Next · '+t('workspace');
+  if(complete)$('completion-summary').textContent=t('completeSummary',{messages:Number(state.messages).toLocaleString(language==='ms'?'ms-MY':'en-GB'),media:Number(state.media).toLocaleString(language==='ms'?'ms-MY':'en-GB')});
+  if(state.prompt){$('promptlabel').textContent=t(state.prompt==='password'?'passwordPrompt':'codePrompt');if(lastPrompt!==state.prompt)$('answer').focus()}
   lastPrompt=state.prompt;selectedResult();
 }
 async function poll(){
   if(polling)return;polling=true;
-  try{
-    const state=await api('state');renderState(state);
-    if(!state.busy && state.output && resultsFor!==state.output){
-      await refreshResults(state.output.split(/[\\/]/).pop());resultsFor=state.output;
-    }
-  }catch(error){$('notice').textContent='Local server unavailable. Keep its terminal open, then reload this page.'}
+  try{const state=await api('state');renderState(state);if(!state.busy&&state.output&&resultsFor!==state.output){await refreshResults(state.output.split(/[\\/]/).pop());resultsFor=state.output}}
+  catch(error){$('notice').textContent=t('offline')}
   finally{polling=false}
 }
-refreshResults().catch(error=>{$('folder-notice').textContent=error.message});
-poll();setInterval(poll,750);
-</script>
-</body></html>
+async function downloadAttachment(relative,filename){
+  const url='/api/attachment?case='+encodeURIComponent(viewerCase)+'&path='+encodeURIComponent(relative);
+  const response=await fetch(url,{headers:{'X-Evidex-Token':token}});
+  if(!response.ok)throw new Error(t('requestError'));
+  const object=URL.createObjectURL(await response.blob()),anchor=document.createElement('a');
+  anchor.href=object;anchor.download=filename||relative.split('/').pop();anchor.click();setTimeout(()=>URL.revokeObjectURL(object),5000);
+}
+async function loadMessages(){
+  $('message-list').textContent=t('loading');
+  const result=await api('messages?case='+encodeURIComponent(viewerCase)+'&offset='+viewerOffset+'&q='+encodeURIComponent($('message-query').value));
+  viewerMore=result.more;$('message-list').replaceChildren();
+  if(!result.messages.length)$('message-list').textContent=t('noMessages');
+  for(const message of result.messages){
+    const article=document.createElement('article');article.className='message';
+    const meta=document.createElement('small');meta.textContent=t('messageMeta',{id:message.message_id??'—',sender:message.sender_id??'—',date:message.date_utc??'—'});
+    const body=document.createElement('p');body.textContent=message.text||'';article.append(meta,body);
+    if(message.media?.saved_path){const button=document.createElement('button');button.type='button';button.className='secondary';button.textContent=t('downloadMedia');button.addEventListener('click',()=>downloadAttachment(message.media.saved_path,message.media.name).catch(error=>{$('message-page').textContent=error.message}));article.append(button)}
+    $('message-list').append(article);
+  }
+  $('message-page').textContent=t('messagePage',{count:result.messages.length,page:Math.floor(viewerOffset/50)+1});
+  $('message-back').disabled=viewerOffset===0;$('message-next').disabled=!viewerMore;
+}
+$('view-messages').addEventListener('click',()=>{viewerCase=$('saved-case').value;viewerOffset=0;$('message-query').value='';$('viewer-dialog').showModal();loadMessages().catch(error=>{$('message-list').textContent=friendlyError(error.message)})});
+$('viewer-close').addEventListener('click',()=>$('viewer-dialog').close());
+$('viewer-search').addEventListener('submit',event=>{event.preventDefault();viewerOffset=0;loadMessages().catch(showError)});
+$('message-back').addEventListener('click',()=>{viewerOffset=Math.max(0,viewerOffset-50);loadMessages().catch(showError)});
+$('message-next').addEventListener('click',()=>{viewerOffset+=50;loadMessages().catch(showError)});
+applyLanguage();poll();setInterval(poll,750);
+
+</script></body></html>
