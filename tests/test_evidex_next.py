@@ -13,7 +13,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 try:
     from aiohttp.test_utils import TestClient, TestServer
-    from evidex_next import Engine, create_app, validate, TRANSPORTS, ENGINE_KEY
+    from evidex_next import Engine, create_app, validate, TRANSPORTS, ENGINE_KEY, open_evidence_folder
 except ModuleNotFoundError:
     Engine = None
 
@@ -225,6 +225,10 @@ class EngineTests(unittest.IsolatedAsyncioTestCase):
 @unittest.skipIf(Engine is None, "Install requirements-next.txt to test native browser mode")
 class NativeHttpTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
+        self.temporary = tempfile.TemporaryDirectory()
+        self.root = Path(self.temporary.name)
+        self.env = patch.dict(os.environ, {"EVIDEX_EXPORT_DIR": str(self.root)})
+        self.env.start()
         self.app = create_app()
         self.client = TestClient(TestServer(self.app, host="127.0.0.1"))
         await self.client.start_server()
@@ -235,6 +239,79 @@ class NativeHttpTests(unittest.IsolatedAsyncioTestCase):
 
     async def asyncTearDown(self):
         await self.client.close()
+        self.env.stop()
+        self.temporary.cleanup()
+
+    def saved_case(self):
+        case = self.root / "EVIDEX_previous_job"
+        case.mkdir()
+        (case / "acquisition_report.json").write_text(json.dumps({"status": "complete"}))
+        (case / "messages.txt").write_text("Evidence sentinel")
+        return case
+
+    async def test_saved_results_survive_server_state_reset(self):
+        case = self.saved_case()
+        response = await self.client.get("/api/results", headers=self.headers)
+        self.assertEqual(response.status, 200)
+        results = (await response.json())["cases"]
+        self.assertEqual(results, [{"name": case.name, "path": str(case), "status": "complete"}])
+        self.assertEqual(self.app[ENGINE_KEY].state["stage"], "idle")
+
+    async def test_results_ignore_broken_links_and_malformed_reports(self):
+        case = self.saved_case()
+        (self.root / "EVIDEX_broken").symlink_to(self.root / "missing")
+        malformed = self.root / "EVIDEX_malformed"
+        malformed.mkdir()
+        (malformed / "acquisition_report.json").write_text("invalid json")
+        response = await self.client.get("/api/results", headers=self.headers)
+        self.assertEqual(response.status, 200)
+        self.assertEqual([item["name"] for item in (await response.json())["cases"]], [case.name])
+
+    async def test_open_saved_folder_does_not_change_evidence(self):
+        case = self.saved_case()
+        before = {p.name: p.read_bytes() for p in case.iterdir()}
+        with patch("evidex_next.open_evidence_folder", new=AsyncMock()) as opener:
+            response = await self.client.post("/api/open-folder", headers=self.headers, json={"case": case.name})
+        self.assertEqual(response.status, 200)
+        opener.assert_awaited_once_with(case)
+        self.assertEqual((await response.json())["path"], str(case))
+        self.assertEqual(before, {p.name: p.read_bytes() for p in case.iterdir()})
+
+    async def test_folder_open_requires_token_and_rejects_arbitrary_paths(self):
+        case = self.saved_case()
+        self.assertEqual((await self.client.post("/api/open-folder", json={"case": case.name})).status, 403)
+        with patch("evidex_next.open_evidence_folder", new=AsyncMock()) as opener:
+            for value in ("../outside", str(case), "EVIDEX_missing", None):
+                response = await self.client.post("/api/open-folder", headers=self.headers, json={"case": value})
+                self.assertEqual(response.status, 400)
+            opener.assert_not_called()
+
+    async def test_symlink_cannot_open_folder_outside_exports(self):
+        with tempfile.TemporaryDirectory() as outside:
+            path = Path(outside)
+            (path / "acquisition_report.json").write_text('{"status":"complete"}')
+            (self.root / "EVIDEX_escape").symlink_to(path, target_is_directory=True)
+            with patch("evidex_next.open_evidence_folder", new=AsyncMock()) as opener:
+                response = await self.client.post("/api/open-folder", headers=self.headers, json={"case": "EVIDEX_escape"})
+                self.assertEqual(response.status, 400)
+                opener.assert_not_called()
+
+    async def test_missing_file_manager_has_manual_path_fallback(self):
+        case = self.saved_case()
+        with patch("evidex_next.open_evidence_folder", new=AsyncMock(side_effect=OSError("internal-secret"))):
+            response = await self.client.post("/api/open-folder", headers=self.headers, json={"case": case.name})
+        self.assertEqual(response.status, 503)
+        error = (await response.json())["error"]
+        self.assertIn(str(case), error)
+        self.assertNotIn("internal-secret", error)
+
+    async def test_open_folder_is_blocked_during_acquisition(self):
+        case = self.saved_case()
+        self.app[ENGINE_KEY].state["busy"] = True
+        with patch("evidex_next.open_evidence_folder", new=AsyncMock()) as opener:
+            response = await self.client.post("/api/open-folder", headers=self.headers, json={"case": case.name})
+        self.assertEqual(response.status, 409)
+        opener.assert_not_called()
 
     async def test_page_and_polling_require_no_websocket_bridge(self):
         self.assertIn("EVIDEX Next", self.html)
@@ -271,3 +348,24 @@ class NativeHttpTests(unittest.IsolatedAsyncioTestCase):
             await self.app[ENGINE_KEY].task
         response = await self.client.get("/api/state", headers=self.headers)
         self.assertEqual((await response.json())["stage"], "transport_passed")
+
+
+@unittest.skipIf(Engine is None, "Install requirements-next.txt")
+class FolderOpenerTests(unittest.IsolatedAsyncioTestCase):
+    async def test_wsl_uses_windows_path_and_argument_list(self):
+        folder = Path("/home/user/evidence with spaces")
+        commands = {"explorer.exe": "/interop/explorer.exe", "wslpath": "/usr/bin/wslpath"}
+        with patch("evidex_next.sys.platform", "linux"), patch("evidex_next.shutil.which", side_effect=commands.get), patch(
+            "evidex_next.folder_command", new=AsyncMock(side_effect=[b"\\\\wsl.localhost\\Kali\\home\\user\\case\n", b""])
+        ) as command:
+            await open_evidence_folder(folder)
+        self.assertEqual(command.await_args_list[0].args, ("/usr/bin/wslpath", "-w", str(folder)))
+        self.assertEqual(command.await_args_list[1].args, ("/interop/explorer.exe", "\\\\wsl.localhost\\Kali\\home\\user\\case"))
+
+    async def test_linux_uses_local_file_manager_without_shell(self):
+        folder = Path("/tmp/evidence ; file")
+        with patch("evidex_next.sys.platform", "linux"), patch("evidex_next.shutil.which", side_effect=lambda name: "/usr/bin/xdg-open" if name == "xdg-open" else None), patch(
+            "evidex_next.folder_command", new=AsyncMock()
+        ) as command:
+            await open_evidence_folder(folder)
+        command.assert_awaited_once_with("/usr/bin/xdg-open", str(folder))

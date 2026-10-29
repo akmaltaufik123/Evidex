@@ -29,8 +29,19 @@ If `~/EvidexNext` already exists, use a different new directory.
 3. Enter the account phone, target and case reference. Confirm authorization.
 4. Select **Start acquisition**. Enter the Telegram code and two-factor password
    in the local page when requested. Already-authorized sessions skip login.
-5. Read the evidence path in the status panel. The app writes JSONL, text,
-   metadata, an acquisition report and a SHA-256 manifest on the Python host.
+5. A green completion notice shows the saved message/media counts when the job
+   has finished. The tab title also changes to “Extraction complete”. Select
+   **Open evidence folder** to view JSONL, text, metadata, media, the acquisition
+   report and SHA-256 manifest in your file manager.
+
+**Saved evidence** lists up to 50 recent case folders, including jobs completed
+before the server restarted. Select a case and open it without another extraction.
+Use **Refresh results** to reload the list. In WSL, the button converts the Linux
+path and opens Windows File Explorer. Native Windows, macOS and Linux file
+managers are also supported. The file manager opens on the Python host. If no
+file manager is available, the page gives a manual folder path. Opening a folder
+does not edit or rehash evidence. The completion notice is inside the app; it does
+not request desktop-notification permission.
 
 Use **Cancel and finalize** to stop safely. Reloading the page does not cancel
 an active job; the same server job and any waiting login prompt reappear.
@@ -81,6 +92,8 @@ authorized acquisition, code/two-factor prompts, secret-safe errors, single-job
 handling, page reload continuity, cancellation and partial evidence finalization.
 For the entire repository suite, install `requirements-web.txt` as well and run
 `python3 -m unittest discover -s tests -v`.
+The browser-script checks can also be run with `node tests/test_next_ui.cjs`
+when Node.js is available; Node.js is not required to run the app.
 
 This removes the terminal/browser bridge and implicit connection settings.
 It cannot guarantee that Telegram endpoints are reachable on every network.

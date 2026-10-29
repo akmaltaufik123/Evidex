@@ -8,6 +8,8 @@ import json
 import os
 import re
 import secrets
+import shutil
+import sys
 from datetime import timezone
 from pathlib import Path
 from typing import Any
@@ -25,7 +27,7 @@ from telegram_connection import (
     connection_error_detail, parse_proxy_url,
 )
 
-VERSION = "0.1.0"
+VERSION = "0.1.1"
 # Both TCP transports worked in the operator's standalone test. HTTP/TLS did not.
 TRANSPORTS = TELEGRAM_TRANSPORTS[:2]
 
@@ -246,6 +248,76 @@ class Engine:
             write_manifest(case)
 
 
+def evidence_root() -> Path:
+    return Path(os.getenv("EVIDEX_EXPORT_DIR", "evidence_exports")).resolve()
+
+
+def evidence_case(name: str) -> Path:
+    """Only allow an existing case directly inside the configured export root."""
+    root = evidence_root()
+    if not isinstance(name, str) or not name.startswith("EVIDEX_") or Path(name).name != name:
+        raise ValueError("Invalid evidence case")
+    case = (root / name).resolve()
+    if case.parent != root or not case.is_dir() or not (case / "acquisition_report.json").is_file():
+        raise ValueError("Evidence case is unavailable")
+    return case
+
+
+def recent_evidence() -> list[dict[str, Any]]:
+    root = evidence_root()
+    if not root.is_dir():
+        return []
+    results = []
+    for path in sorted(root.glob("EVIDEX_*"), key=lambda item: item.lstat().st_mtime, reverse=True):
+        try:
+            case = evidence_case(path.name)
+            report = json.loads((case / "acquisition_report.json").read_text(encoding="utf-8"))
+            if not isinstance(report, dict):
+                continue
+            results.append(dict(name=case.name, path=str(case), status=report.get("status", "unknown")))
+        except (OSError, ValueError):
+            continue
+        if len(results) == 50:
+            break
+    return results
+
+
+async def folder_command(*args: str) -> bytes:
+    """Run fixed opener arguments without a shell and without blocking acquisition."""
+    process = await asyncio.create_subprocess_exec(
+        *args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL,
+    )
+    try:
+        stdout, _ = await asyncio.wait_for(process.communicate(), timeout=5)
+    except BaseException:
+        if process.returncode is None:
+            process.kill()
+        await process.wait()
+        raise
+    if process.returncode:
+        raise OSError("File manager command failed")
+    return stdout
+
+
+async def open_evidence_folder(case: Path) -> None:
+    if sys.platform == "win32":
+        await asyncio.to_thread(os.startfile, str(case))
+    elif shutil.which("explorer.exe"):
+        # Windows Explorer needs a Windows/WSL UNC path, not /home/… .
+        converter = shutil.which("wslpath")
+        if not converter:
+            raise OSError("WSL path converter is unavailable")
+        windows_path = (await folder_command(converter, "-w", str(case))).decode().strip()
+        if not windows_path:
+            raise OSError("WSL path conversion failed")
+        await folder_command(shutil.which("explorer.exe"), windows_path)
+    else:
+        executable = shutil.which("open" if sys.platform == "darwin" else "xdg-open")
+        if not executable:
+            raise OSError("File manager is unavailable")
+        await folder_command(executable, str(case))
+
+
 ENGINE_KEY = web.AppKey("engine", Engine)
 
 
@@ -301,6 +373,22 @@ def create_app() -> web.Application:
         engine.cancel()
         return web.json_response({"ok": True})
 
+    async def results(request):
+        return web.json_response({"cases": recent_evidence()}, headers={"Cache-Control": "no-store"})
+
+    async def open_folder(request):
+        payload = await request.json()
+        if not isinstance(payload, dict):
+            raise ValueError()
+        case = evidence_case(payload.get("case"))
+        if engine.state["busy"]:
+            return web.json_response({"error": "Wait for the job to finish or cancel and finalize it first."}, status=409)
+        try:
+            await open_evidence_folder(case)
+        except (OSError, TimeoutError):
+            return web.json_response({"error": f"Could not open a file manager. Open this folder manually: {case}"}, status=503)
+        return web.json_response({"ok": True, "path": str(case)})
+
     async def cleanup(app):
         await engine.close()
 
@@ -309,6 +397,8 @@ def create_app() -> web.Application:
     app.router.add_post("/api/run", run)
     app.router.add_post("/api/answer", answer)
     app.router.add_post("/api/cancel", cancel)
+    app.router.add_get("/api/results", results)
+    app.router.add_post("/api/open-folder", open_folder)
     app.on_cleanup.append(cleanup)
     return app
 
