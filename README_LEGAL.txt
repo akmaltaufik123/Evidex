@@ -1,6 +1,6 @@
 
 1. INTENDED USE & ETHICAL OBLIGATION
-   CyberOps is engineered explicitly for authorized digital forensics, 
+   EVIDEX is engineered explicitly for authorized digital forensics,
    incident response (DFIR), and lawful public evidence collection 
    within Telegram conversations, open groups, and public channels. 
    This tool must NOT be used to cause harassment, injury, malicious 

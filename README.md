@@ -1,51 +1,87 @@
-<div align="center">
-<img 
-src="https://cdn.phototourl.com/free/2026-07-26-fef8d710-c647-4e3c-849d-7256654cc536.jpg"
+# EVIDEX: Evidence Extraction Tool
 
-# CyberOps: Telegram Scraper for Investigation (TSI)
+EVIDEX is a terminal user interface for authorized Telegram evidence acquisition.
 
-<p align="center">
-  <b>Telegram Scraper for Investigation (TSI) tool for collecting evidence by scraping the whole conversation into one output.</b>
-</p>
+Built with [Textual](https://textual.textualize.io/) and [Telethon](https://docs.telethon.dev/), it uses an event-driven TUI instead of a numbered CLI menu.
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Python-3.8%2B-blue.svg" alt="Python Version">
-  <img src="https://img.shields.io/badge/Telethon-Async-red.svg" alt="Telethon">
-  <img src="https://img.shields.io/badge/Version-1.0.1-brightgreen.svg" alt="Version">
-  <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
-</p>
+> Use EVIDEX only where you have explicit authorization and a lawful basis to collect the data.
 
-</div>
+## Capabilities
 
----
+- Guided extraction form with validation and masked secrets
+- Telegram verification-code and two-factor prompts inside the TUI
+- Full-history or message-limited acquisition in chronological order
+- Optional media download with SHA-256 hashes
+- Live acquisition log, progress, cancellation, and partial-run finalization
+- Machine-readable JSONL plus human-readable text output
+- Case metadata, acquisition report, and a portable SHA-256 manifest
+- Credentials sourced at runtime or through environment variables—not source code
 
-## 🔍 Overview
+## Installation
 
-**CyberOps** is a powerful Python-based investigation suite engineered for lawful public evidence collection. Utilizing the asynchronous **Telethon** framework, it extracts complete chat histories, text logs, and media assets from Telegram channels and groups into structured, timestamped archives with live terminal monitoring.
+EVIDEX requires Python 3.10 or newer.
 
----
-
-## ⚡ Key Capabilities
-
-| Feature | Description |
-| :--- | :--- |
-| **Complete Archiving** | Scrapes entire message histories from public chats, groups, and channels. |
-| **Multimodal Extraction** | Seamlessly captures text messages, photos, videos, documents, and audio. |
-| **Structured Output** | Automatically organizes logs and creates dedicated media directories. |
-| **Live Terminal Review** | Real-time console preview with precise time logs and event tracking. |
-| **Flexible Targeting** | Supports target lookups via usernames, public links, or numeric IDs. |
-
----
-
-## 🛠️ Quick Start Guide
-
-### 1. Clone & Set Up
 ```bash
 git clone https://github.com/akmaltaufik123/cyberops.tsi.git
 cd cyberops.tsi
-
-# Create and activate virtual environment
 python3 -m venv venv
 source venv/bin/activate
+python3 -m pip install -r requirements.txt
+python3 evidex.py
+```
 
-run python3 cyberops.py
+Get an API ID and API hash from Telegram's official developer portal: <https://my.telegram.org/>.
+
+Credentials can be entered in the TUI or prefilled for the current process:
+
+```bash
+export TELEGRAM_API_ID="your_api_id"
+export TELEGRAM_API_HASH="your_api_hash"
+export TELEGRAM_PHONE="+60123456789"
+python3 evidex.py
+```
+
+Do not commit credentials, session files, or evidence exports.
+
+Run the local test suite with:
+
+```bash
+python3 -m unittest discover -s tests -v
+```
+
+## Controls
+
+| Key | Action |
+| --- | --- |
+| `F1` | Open legal and responsible-use notice |
+| `F2` | Open setup guide |
+| `Ctrl+R` | Focus the start button |
+| `Ctrl+X` | Cancel and finalize a partial acquisition |
+| `Ctrl+Q` | Quit |
+
+## Evidence output
+
+Each run creates a directory named `EVIDEX_<case>_<UTC timestamp>` containing:
+
+| Artifact | Purpose |
+| --- | --- |
+| `metadata.json` | Tool, source, settings, timestamps, and final status |
+| `messages.jsonl` | One structured JSON record per message |
+| `messages.txt` | Human-readable chronological transcript |
+| `media/` | Downloaded attachments, when enabled |
+| `acquisition_report.json` | Counts, status, and non-secret error summary |
+| `manifest.sha256` | SHA-256 digest for every completed artifact |
+
+Verify an export from inside its directory with `sha256sum -c manifest.sha256` on systems that provide `sha256sum`.
+
+## Security and legal
+
+- API credentials and the account phone number are not written to evidence artifacts.
+- Telegram session files are stored under `.evidex_sessions/` and must be protected as credentials.
+- A cancelled run is marked `cancelled`, and completed partial artifacts are hashed.
+- Media download failures are recorded without aborting the message export.
+- Review `README_LEGAL.txt` before use.
+
+## License
+
+MIT. See `LICENSE`.

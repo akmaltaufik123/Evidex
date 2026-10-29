@@ -1,6 +1,6 @@
 
 1. HOW TO OBTAIN TELEGRAM API CREDENTIALS (API ID & API HASH)
-   To use CyberOps, you must link your Telegram account using official 
+   To use EVIDEX, you must link your Telegram account using official
    developer credentials. Follow these steps to obtain them:
    
    * Step 1: Open your web browser and go to the official Telegram 
@@ -17,15 +17,15 @@
    * Step 4: Click on "API development tools".
    
    * Step 5: Fill out the application form to register a new application 
-     (you can name it anything, e.g., "CyberOpsInvestigation"). 
+     (you can name it anything, e.g., "EvidexInvestigation").
      The platform type can be set to "Desktop".
    
    * Step 6: Once registered, the portal will display your unique:
      - api_id (an integer number)
      - api_hash (a secure alphanumeric string)
    
-   * Step 7: Open the python script (`cyberops.py`) and paste these credentials 
-     into the configuration section at the top.
+   * Step 7: Start EVIDEX and enter the credentials in the TUI. Credentials
+     must not be pasted into the source code or committed to Git.
 
 
 2. WHY USE A VIRTUAL ENVIRONMENT (venv)?
@@ -55,11 +55,24 @@
 
 4. RUNNING THE TOOL:
    Once installed inside the virtual environment, execute the script via:
-           python3 cyberops.py
+           python3 evidex.py
 
 
 5. CAN YOU RUN WITHOUT VENV?
    Yes, terminals will technically execute scripts without a venv if 
-   libraries are installed globally (`pip install -r requirements.txt --break-system-packages` 
-   on modern strict Linux distributions). However, using `venv` remains 
+   libraries are installed globally. However, using `venv` remains
    the industry best-practice for security and stability.
+
+
+6. OPTIONAL ENVIRONMENT VARIABLES:
+   EVIDEX can prefill its credential fields without modifying source code:
+           TELEGRAM_API_ID
+           TELEGRAM_API_HASH
+           TELEGRAM_PHONE
+
+   Optional path settings:
+           EVIDEX_EXPORT_DIR
+           EVIDEX_SESSION_DIR
+
+   Protect the session directory. A Telegram session file grants account access
+   and must be handled as a credential.

@@ -1,6 +1,9 @@
 venv/
 *.session
 *.session-journal
-CyberOps_*
+.evidex_sessions/
+evidence_exports/
+EVIDEX_*
 __pycache__/
+*.py[cod]
 .DS_Store
