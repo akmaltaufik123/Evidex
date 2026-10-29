@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from urllib.parse import unquote, urlparse
 
 from telethon import TelegramClient
 from telethon.errors import (
@@ -42,7 +43,7 @@ from textual.widgets import (
     Static,
 )
 
-__version__ = "2.0.2"
+__version__ = "2.1.0"
 APP_NAME = "EVIDEX"
 APP_SUBTITLE = "Evidence Extraction Tool"
 TRANSPORT_TIMEOUT_SECONDS = 8
@@ -75,6 +76,7 @@ class ExtractionConfig:
     output_root: Path
     message_limit: int | None
     download_media: bool
+    proxy: dict[str, Any] | None
 
 
 def utc_now() -> datetime:
@@ -85,6 +87,31 @@ def safe_name(value: str, fallback: str = "case") -> str:
     """Convert user-controlled text to a safe, short directory component."""
     cleaned = re.sub(r"[^A-Za-z0-9_.-]+", "_", value.strip()).strip("._")
     return (cleaned[:80] or fallback)
+
+
+def parse_proxy_url(value: str) -> dict[str, Any]:
+    """Parse a SOCKS/HTTP proxy URL into Telethon's proxy configuration."""
+    parsed = urlparse(value.strip())
+    proxy_type = parsed.scheme.lower()
+    if proxy_type not in {"socks5", "socks4", "http"}:
+        raise ValueError("Proxy scheme must be socks5, socks4, or http.")
+    if not parsed.hostname:
+        raise ValueError("Proxy URL must include a host.")
+    try:
+        port = parsed.port
+    except ValueError as error:
+        raise ValueError("Proxy URL contains an invalid port.") from error
+    if port is None:
+        raise ValueError("Proxy URL must include a port.")
+
+    return {
+        "proxy_type": proxy_type,
+        "addr": parsed.hostname,
+        "port": port,
+        "username": unquote(parsed.username) if parsed.username else None,
+        "password": unquote(parsed.password) if parsed.password else None,
+        "rdns": True,
+    }
 
 
 def sha256_file(path: Path) -> str:
@@ -350,6 +377,16 @@ class EvidexApp(App[None]):
                     placeholder="@username, public link, or numeric ID",
                     id="target",
                 )
+                yield Label("Proxy URL (optional, masked)", classes="field-label")
+                yield Input(
+                    value=os.getenv(
+                        "EVIDEX_PROXY_URL",
+                        os.getenv("ALL_PROXY", ""),
+                    ),
+                    placeholder="socks5://host:port or http://host:port",
+                    password=True,
+                    id="proxy-url",
+                )
                 yield Label("Case / reference ID", classes="field-label")
                 yield Input(
                     value=f"case-{utc_now():%Y%m%d}",
@@ -396,6 +433,7 @@ class EvidexApp(App[None]):
         api_hash = self.query_one("#api-hash", Input).value.strip()
         phone = self.query_one("#phone", Input).value.strip()
         target = self.query_one("#target", Input).value.strip()
+        proxy_text = self.query_one("#proxy-url", Input).value.strip()
         case_id = self.query_one("#case-id", Input).value.strip()
         output_text = self.query_one("#output-root", Input).value.strip()
         limit_text = self.query_one("#message-limit", Input).value.strip()
@@ -426,6 +464,14 @@ class EvidexApp(App[None]):
             self.notify("Authorization confirmation is required.", severity="error")
             return None
 
+        proxy: dict[str, Any] | None = None
+        if proxy_text:
+            try:
+                proxy = parse_proxy_url(proxy_text)
+            except ValueError as error:
+                self.notify(str(error), severity="error")
+                return None
+
         return ExtractionConfig(
             api_id=int(api_id_text),
             api_hash=api_hash,
@@ -435,6 +481,7 @@ class EvidexApp(App[None]):
             output_root=Path(output_text).expanduser().resolve(),
             message_limit=int(limit_text) if limit_text else None,
             download_media=self.query_one("#download-media", Checkbox).value,
+            proxy=proxy,
         )
 
     @on(Button.Pressed, "#start")
@@ -574,6 +621,7 @@ class EvidexApp(App[None]):
                     "message_limit": config.message_limit,
                     "download_media": config.download_media,
                     "ordering": "oldest_to_newest",
+                    "proxy_used": config.proxy is not None,
                 },
                 "available_messages_at_start": available_messages,
                 "credential_storage": "Credentials were not written to this export.",
@@ -759,6 +807,7 @@ class EvidexApp(App[None]):
                 config.api_id,
                 config.api_hash,
                 connection=transport_class,
+                proxy=config.proxy,
                 timeout=6,
                 request_retries=1,
                 connection_retries=1,
@@ -769,7 +818,8 @@ class EvidexApp(App[None]):
             self.set_status(f"Connecting via {transport_name}…")
             self.log_event(
                 f"Trying {transport_name} "
-                f"({TRANSPORT_TIMEOUT_SECONDS}s timeout)."
+                f"({TRANSPORT_TIMEOUT_SECONDS}s timeout)"
+                f"{' through configured proxy' if config.proxy else ''}."
             )
 
             try:

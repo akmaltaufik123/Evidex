@@ -8,7 +8,14 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from evidex import ABOUT_TEXT, EvidexApp, ExtractionConfig, PromptScreen, safe_name
+from evidex import (
+    ABOUT_TEXT,
+    EvidexApp,
+    ExtractionConfig,
+    PromptScreen,
+    parse_proxy_url,
+    safe_name,
+)
 
 
 class HelperTests(unittest.TestCase):
@@ -26,6 +33,18 @@ class HelperTests(unittest.TestCase):
             expected = hashlib.sha256(artifact.read_bytes()).hexdigest()
             manifest = (case_dir / "manifest.sha256").read_text(encoding="utf-8")
             self.assertEqual(manifest, f"{expected}  messages.txt\n")
+
+    def test_proxy_url_parsing(self) -> None:
+        proxy = parse_proxy_url("socks5://analyst:p%40ss@127.0.0.1:1080")
+        self.assertEqual(proxy["proxy_type"], "socks5")
+        self.assertEqual(proxy["addr"], "127.0.0.1")
+        self.assertEqual(proxy["port"], 1080)
+        self.assertEqual(proxy["username"], "analyst")
+        self.assertEqual(proxy["password"], "p@ss")
+
+    def test_proxy_url_rejects_unsupported_scheme(self) -> None:
+        with self.assertRaisesRegex(ValueError, "scheme"):
+            parse_proxy_url("ftp://127.0.0.1:21")
 
 class TuiTests(unittest.IsolatedAsyncioTestCase):
     async def test_main_screen_and_legal_modal(self) -> None:
@@ -65,11 +84,13 @@ class TuiTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_connection_falls_back_to_https_transport(self) -> None:
         attempted: list[str] = []
+        received_proxies: list[object] = []
 
         class FakeClient:
             def __init__(self, *args: object, connection: type, **kwargs: object) -> None:
                 self.connection = connection
                 self.connected = False
+                received_proxies.append(kwargs.get("proxy"))
 
             async def connect(self) -> None:
                 attempted.append(self.connection.__name__)
@@ -92,6 +113,7 @@ class TuiTests(unittest.IsolatedAsyncioTestCase):
             output_root=Path("."),
             message_limit=1,
             download_media=False,
+            proxy=parse_proxy_url("socks5://127.0.0.1:1080"),
         )
         app = EvidexApp()
         app.set_status = lambda message: None  # type: ignore[method-assign]
@@ -105,6 +127,8 @@ class TuiTests(unittest.IsolatedAsyncioTestCase):
             attempted,
             ["ConnectionTcpFull", "ConnectionTcpObfuscated", "ConnectionHttp"],
         )
+        self.assertEqual(len(received_proxies), 3)
+        self.assertTrue(all(proxy == config.proxy for proxy in received_proxies))
 
 
 if __name__ == "__main__":

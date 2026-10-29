@@ -17,6 +17,7 @@ Built with [Textual](https://textual.textualize.io/) and [Telethon](https://docs
 - Case metadata, acquisition report, and a portable SHA-256 manifest
 - Credentials sourced at runtime or through environment variables—not source code
 - Automatic standard, obfuscated, and HTTPS Telegram transport fallback
+- Masked SOCKS5, SOCKS4, and HTTP proxy support for filtered networks
 
 ## Installation
 
@@ -41,6 +42,21 @@ export TELEGRAM_API_HASH="your_api_hash"
 export TELEGRAM_PHONE="+60123456789"
 python3 evidex.py
 ```
+
+### Filtered Telegram connections
+
+If direct Telegram handshakes are filtered, enter a trusted proxy in the masked
+**Proxy URL** field:
+
+```text
+socks5://username:password@proxy-host:port
+http://username:password@proxy-host:port
+```
+
+The proxy can also be provided for the current process with
+`EVIDEX_PROXY_URL`. EVIDEX also recognizes `ALL_PROXY` when the dedicated
+variable is unset. Proxy credentials are never written to evidence artifacts.
+Avoid untrusted public proxies because they can observe connection metadata.
 
 Do not commit credentials, session files, or evidence exports.
 
@@ -79,6 +95,7 @@ Verify an export from inside its directory with `sha256sum -c manifest.sha256` o
 ## Security and legal
 
 - API credentials and the account phone number are not written to evidence artifacts.
+- Proxy addresses and credentials are not written to evidence artifacts.
 - Telegram session files are stored under `.evidex_sessions/` and must be protected as credentials.
 - A cancelled run is marked `cancelled`, and completed partial artifacts are hashed.
 - Media download failures are recorded without aborting the message export.

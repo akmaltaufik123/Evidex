@@ -73,6 +73,10 @@
    Optional path settings:
            EVIDEX_EXPORT_DIR
            EVIDEX_SESSION_DIR
+           EVIDEX_PROXY_URL
+
+   EVIDEX_PROXY_URL accepts a SOCKS5, SOCKS4, or HTTP proxy URL. Example:
+           socks5://username:password@proxy-host:port
 
    Protect the session directory. A Telegram session file grants account access
    and must be handled as a credential.
