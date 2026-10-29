@@ -37,9 +37,10 @@ from textual.widgets import (
     Static,
 )
 
-__version__ = "2.0.0"
+__version__ = "2.0.1"
 APP_NAME = "EVIDEX"
 APP_SUBTITLE = "Evidence Extraction Tool"
+CONNECT_TIMEOUT_SECONDS = 20
 BASE_DIR = Path(__file__).resolve().parent
 DEFAULT_EXPORT_DIR = Path(os.getenv("EVIDEX_EXPORT_DIR", "evidence_exports"))
 SESSION_DIR = Path(os.getenv("EVIDEX_SESSION_DIR", ".evidex_sessions"))
@@ -511,9 +512,21 @@ class EvidexApp(App[None]):
                 str(SESSION_DIR / f"evidex_{session_key}"),
                 config.api_id,
                 config.api_hash,
+                timeout=8,
+                connection_retries=2,
+                retry_delay=1,
             )
             self._active_client = client
-            await client.connect()
+            self.log_event(
+                f"Opening Telegram connection ({CONNECT_TIMEOUT_SECONDS}s timeout)."
+            )
+            await asyncio.wait_for(
+                client.connect(),
+                timeout=CONNECT_TIMEOUT_SECONDS,
+            )
+            if not client.is_connected():
+                raise ConnectionError("Telegram transport did not connect.")
+            self.log_event("Telegram transport connected.")
             await self.authorize_client(client, config.phone)
 
             target: str | int = config.target
@@ -686,6 +699,13 @@ class EvidexApp(App[None]):
             self.report_failure(failure)
         except FloodWaitError as error:
             failure = f"Telegram rate limit: retry after {error.seconds} seconds."
+            self.report_failure(failure)
+        except TimeoutError:
+            failure = (
+                f"Telegram connection timed out after {CONNECT_TIMEOUT_SECONDS} seconds. "
+                "Check internet access, VPN/firewall settings, and Telegram access "
+                "from this terminal environment."
+            )
             self.report_failure(failure)
         except Exception as error:
             failure = f"{type(error).__name__}: {error}"
