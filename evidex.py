@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import argparse
 import asyncio
 import hashlib
 import json
 import os
 import re
 import ssl
+import shlex
+import sys
 import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -1007,8 +1010,31 @@ class EvidexApp(App[None]):
         temporary.replace(manifest_path)
 
 
-def main() -> None:
-    EvidexApp().run()
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--web", action="store_true", help="Run the TUI in a localhost browser")
+    parser.add_argument("--port", type=int, default=8000, help="Local browser port (default: 8000)")
+    args = parser.parse_args(argv)
+    if not 1 <= args.port <= 65535:
+        parser.error("--port must be between 1 and 65535")
+    if args.web:
+        try:
+            from textual_serve.server import Server
+        except ModuleNotFoundError as error:
+            if error.name not in {"textual_serve", "textual_serve.server"}:
+                raise
+            parser.exit(
+                1,
+                "Browser mode requires optional dependencies. Install them with:\n"
+                f"  {shlex.quote(sys.executable)} -m pip install -r "
+                f"{shlex.quote(str(BASE_DIR / 'requirements-web.txt'))}\n",
+            )
+        # The child uses this interpreter/file, inherits the working directory and
+        # environment, and starts without --web so it cannot recursively serve.
+        command = shlex.join([sys.executable, str(Path(__file__).resolve())])
+        Server(command, host="127.0.0.1", port=args.port, title=APP_NAME).serve()
+    else:
+        EvidexApp().run()
 
 
 if __name__ == "__main__":

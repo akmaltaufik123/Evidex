@@ -284,5 +284,43 @@ class ConnectionTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("connection timed out", str(self.app.log_event.call_args_list))
 
 
+class LauncherTests(unittest.TestCase):
+    def test_default_launch_is_terminal(self) -> None:
+        with patch("evidex.EvidexApp") as app:
+            evidex.main([])
+        app.return_value.run.assert_called_once_with()
+
+    def test_browser_launch_uses_loopback_and_current_interpreter(self) -> None:
+        import shlex
+        import sys
+        server_module = SimpleNamespace(Server=MagicMock())
+        with patch.dict("sys.modules", {"textual_serve.server": server_module}), patch("evidex.EvidexApp") as app:
+            evidex.main(["--web", "--port", "8080"])
+        args, kwargs = server_module.Server.call_args
+        self.assertEqual(shlex.split(args[0]), [sys.executable, str(Path(evidex.__file__).resolve())])
+        self.assertEqual(kwargs, {"host": "127.0.0.1", "port": 8080, "title": "EVIDEX"})
+        server_module.Server.return_value.serve.assert_called_once_with()
+        app.assert_not_called()
+
+    def test_missing_browser_dependency_has_install_instruction(self) -> None:
+        import contextlib
+        import io
+        output = io.StringIO()
+        with patch.dict("sys.modules", {"textual_serve": None, "textual_serve.server": None}), contextlib.redirect_stderr(output):
+            with self.assertRaises(SystemExit) as caught:
+                evidex.main(["--web"])
+        self.assertEqual(caught.exception.code, 1)
+        self.assertIn("requirements-web.txt", output.getvalue())
+
+    def test_invalid_port_is_rejected(self) -> None:
+        import contextlib
+        import io
+        for port in ("0", "65536"):
+            with self.subTest(port=port), contextlib.redirect_stderr(io.StringIO()):
+                with self.assertRaises(SystemExit) as caught:
+                    evidex.main(["--web", "--port", port])
+            self.assertEqual(caught.exception.code, 2)
+
+
 if __name__ == "__main__":
     unittest.main()

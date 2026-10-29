@@ -16,7 +16,7 @@ Built with [Textual](https://textual.textualize.io/) and [Telethon](https://docs
 - Machine-readable JSONL plus human-readable text output
 - Case metadata, acquisition report, and a portable SHA-256 manifest
 - Credentials sourced at runtime or through environment variables—not source code
-- Automatic standard, obfuscated, and HTTPS Telegram transport fallback
+- Automatic standard, obfuscated, and HTTP MTProto Telegram transport fallback
 - Masked SOCKS5, SOCKS4, and HTTP proxy support for filtered networks
 - Reuse of an existing authorized Telegram `.session` file
 
@@ -32,6 +32,31 @@ source venv/bin/activate
 python3 -m pip install -r requirements.txt
 python3 evidex.py
 ```
+
+### Run in a localhost browser
+
+Install the optional browser dependency in the same virtual environment:
+
+```bash
+python3 -m pip install -r requirements-web.txt
+python3 evidex.py --web
+```
+
+Open <http://127.0.0.1:8000> in your browser. To choose another port, use
+`python3 evidex.py --web --port 8080`. The server binds to the local machine only.
+This runs the existing Textual interface through
+[Textual Serve](https://github.com/Textualize/textual-serve), with the same
+Telegram prompts, proxy settings and evidence exports. Telegram still connects
+from the Python process; browser mode does not bypass network connection failures.
+
+Use one browser tab at a time and close any terminal instance using the same
+Telegram session. Each browser connection starts its own app process. Keep the
+server terminal open. Cancel an active acquisition with the on-screen Cancel
+button and wait for finalization before closing or refreshing the tab. Stop the
+server with Ctrl+C after acquisition has finished. Files remain on the machine
+running Python, in the same working-directory-relative locations as terminal mode.
+Browser shortcuts may intercept function/control keys; use the on-screen buttons
+when needed. The terminal launch command remains `python3 evidex.py`.
 
 Get an API ID and API hash from Telegram's official developer portal: <https://my.telegram.org/>.
 

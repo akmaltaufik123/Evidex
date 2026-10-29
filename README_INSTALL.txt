@@ -57,6 +57,15 @@
    Once installed inside the virtual environment, execute the script via:
            python3 evidex.py
 
+   Optional localhost browser mode (same TUI):
+           python3 -m pip install -r requirements-web.txt
+           python3 evidex.py --web
+   Open http://127.0.0.1:8000 (or use --port 8080).
+   Use one tab; do not share a Telegram session with another running instance.
+   Cancel and wait for finalization before refreshing/closing an active tab.
+   Keep the server terminal open; stop it with Ctrl+C when finished.
+   Exports are saved on the Python host, not downloaded by the browser.
+
 
 5. CAN YOU RUN WITHOUT VENV?
    Yes, terminals will technically execute scripts without a venv if 
