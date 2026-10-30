@@ -142,3 +142,7 @@ literal text. Cancel receives initial focus; Escape cancels; no request is sent
 until explicit acceptance. Native dialog semantics contain keyboard focus and
 restore it to the launching control. Both languages and narrow screens retain
 single-line controls. Self-review: P4 H4 E4 S5 R5 V4.
+
+Saved-result actions share one wrapping row: view messages, open folder, refresh,
+delete selected files and clear history. Buttons retain their existing sizing;
+on narrow screens they wrap as whole controls.
