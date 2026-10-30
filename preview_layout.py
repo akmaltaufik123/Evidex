@@ -14,6 +14,10 @@ class Preview(BaseHTTPRequestHandler):
             return self.send(body.encode(), 'text/html; charset=utf-8')
         if path == '/app.css':
             return self.send((ROOT / 'evidex_next.css').read_bytes(), 'text/css')
+        if path.startswith('/agency-assets/'):
+            name = path.removeprefix('/agency-assets/')
+            if name in {'mcmc.png', 'pdrm.png', 'nsrc.png', 'cybersecurity-malaysia.png'}:
+                return self.send((ROOT / 'agency_assets' / name).read_bytes(), 'image/png')
         if path.startswith('/guide-assets/'):
             name = path.removeprefix('/guide-assets/')
             if '/' not in name and name.endswith('.webp') and (ROOT / 'guide_assets' / name).is_file():

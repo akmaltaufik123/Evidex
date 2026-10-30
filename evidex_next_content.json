@@ -116,7 +116,19 @@
     "historyCleared": "History cleared. Evidence files remain on this computer.",
     "deleteTitle": "Delete this result?",
     "historyTitle": "Clear history?",
-    "confirmCancel": "Cancel"
+    "confirmCancel": "Cancel",
+    "helpChannels": "Official reporting channels",
+    "helpReview": "You have the right to review and choose evidence before sharing it. EVIDEX helps with collection; you submit your own complaint through official channels.",
+    "helpUrgent": "Just transferred money to a scammer? Call your bank or NSRC 997 immediately. Do not wait for extraction. For immediate danger or a crime in progress, call 999.",
+    "helpDisclaimer": "Reference directory only. No automatic submission or official agency partnership. Email buttons open your mail application without attaching evidence. Check the recipient and choose attachments yourself; never share login codes, API hashes or session files.",
+    "contactPortal": "Open portal",
+    "contactSource": "Official source",
+    "contactEmail": "Open email",
+    "contactVerified": "Checked: 30 October 2026. Numbers may change; check the source or the back of your bank card.",
+    "bankContacts": "Bank numbers in Malaysia",
+    "bankHint": "Choose your bank. This reference list does not include every bank. If yours is absent, check the back of your card or your bank’s official website.",
+    "bankDirectory": "ABM bank directory",
+    "contactPhone": "Phone"
   },
   "ms": {
     "workspace": "RUANG KERJA TEMPATAN",
@@ -235,7 +247,19 @@
     "historyCleared": "Sejarah dikosongkan. Fail bukti masih ada dalam komputer.",
     "deleteTitle": "Padam hasil ini?",
     "historyTitle": "Kosongkan sejarah?",
-    "confirmCancel": "Batal"
+    "confirmCancel": "Batal",
+    "helpChannels": "Saluran aduan rasmi",
+    "helpReview": "Anda berhak menyemak dan memilih bukti sebelum berkongsi. EVIDEX hanya membantu pengumpulan; anda sendiri membuat aduan melalui saluran rasmi.",
+    "helpUrgent": "Wang baru dipindahkan kepada penipu? Hubungi bank atau NSRC 997 segera. Jangan tunggu extraction selesai. Jika nyawa terancam atau jenayah sedang berlaku, hubungi 999.",
+    "helpDisclaimer": "Direktori rujukan sahaja. Tiada penghantaran automatik atau kerjasama rasmi dengan agensi. Butang e-mel membuka aplikasi e-mel anda tanpa melampirkan bukti. Semak penerima dan pilih lampiran sendiri; jangan kongsi kod login, API hash atau fail sesi.",
+    "contactPortal": "Buka portal",
+    "contactSource": "Sumber rasmi",
+    "contactEmail": "Buka e-mel",
+    "contactVerified": "Disemak: 30 Oktober 2026. Nombor boleh berubah; semak sumber atau belakang kad bank anda.",
+    "bankContacts": "Nombor bank di Malaysia",
+    "bankHint": "Pilih bank anda. Ini senarai rujukan, bukan senarai lengkap semua bank. Jika tiada, rujuk nombor di belakang kad atau laman rasmi bank.",
+    "bankDirectory": "Direktori bank ABM",
+    "contactPhone": "Telefon"
   },
   "guide": [
     {
@@ -346,5 +370,183 @@
       },
       "url": null
     }
-  ]
+  ],
+  "contacts": {
+    "checked": "2026-10-30",
+    "agencies": [
+      {
+        "name": "SKMM / MCMC",
+        "logo": "mcmc.png",
+        "url": "https://aduan.mcmc.gov.my/",
+        "source": "https://mdcameron.gov.my/en/node/1882",
+        "ms": "Aduan komunikasi dan kandungan dalam talian. E-mel ini ialah saluran aduan.",
+        "en": "Communication and online-content complaints. This email is a complaint channel.",
+        "phones": [
+          [
+            "1800-188-030",
+            "1800188030",
+            "Hotline pengguna",
+            "Consumer hotline"
+          ]
+        ],
+        "email": "aduanskmm@mcmc.gov.my"
+      },
+      {
+        "name": "PDRM",
+        "logo": "pdrm.png",
+        "url": "https://www.rmp.gov.my/",
+        "source": "https://www.rmp.gov.my/direktori/talian-bilik-gerakan",
+        "ms": "Untuk kes berunsur jenayah, buat laporan di balai polis. E-mel am ini untuk pertanyaan, bukan pengganti laporan polis.",
+        "en": "For criminal matters, lodge a report at a police station. This general email is for enquiries, not a replacement for a police report.",
+        "phones": [
+          [
+            "999",
+            "999",
+            "Kecemasan",
+            "Emergency"
+          ],
+          [
+            "03-2266 3333",
+            "+60322663333",
+            "Bilik gerakan Bukit Aman (24 jam)",
+            "Bukit Aman operations room (24 hours)"
+          ],
+          [
+            "03-2266 2222",
+            "+60322662222",
+            "Talian am",
+            "General line"
+          ]
+        ],
+        "email": "rmp@rmp.gov.my"
+      },
+      {
+        "name": "Cyber999 / CyberSecurity Malaysia",
+        "logo": "cybersecurity-malaysia.png",
+        "url": "https://www.mycert.org.my/portal/online-form?id=7a911418-9e84-4e48-84d3-aa8a4fe55f16",
+        "source": "https://www.cybersecurity.my/portal-main/services/cyber999-overview",
+        "ms": "Insiden keselamatan komputer seperti phishing, pencerobohan dan kebocoran data. E-mel menerima laporan insiden.",
+        "en": "Computer security incidents such as phishing, intrusion and data breaches. Email accepts incident reports.",
+        "phones": [
+          [
+            "1-300-88-2999",
+            "1300882999",
+            "Waktu pejabat, 8:30 pagi–5:30 petang",
+            "Office hours, 8:30 am–5:30 pm"
+          ],
+          [
+            "019-266 5850",
+            "+60192665850",
+            "24 jam: DDoS, phishing, kebocoran data",
+            "24 hours: DDoS, phishing, data breach"
+          ]
+        ],
+        "email": "cyber999@cybersecurity.my"
+      },
+      {
+        "name": "NSRC",
+        "logo": "nsrc.png",
+        "url": "https://nfcc.jpm.gov.my/index.php/en/about-nsrc",
+        "source": "https://www.bnm.gov.my/faqs/scams",
+        "ms": "Penipuan kewangan dalam talian: hubungi bank atau 997 segera, kemudian buat laporan polis. Tiada e-mel aduan disahkan dalam direktori ini.",
+        "en": "Online financial scams: call your bank or 997 immediately, then lodge a police report. No complaint email is verified in this directory.",
+        "phones": [
+          [
+            "997",
+            "997",
+            "Talian respons penipuan",
+            "Scam response hotline"
+          ]
+        ],
+        "email": null
+      }
+    ],
+    "banks": [
+      {
+        "name": "Affin Bank",
+        "phone": "03-8230 2222",
+        "source": "https://www.abm.org.my/safe-online-banking/directory/"
+      },
+      {
+        "name": "Alliance Bank",
+        "phone": "03-5516 9800",
+        "source": "https://www.abm.org.my/safe-online-banking/directory/"
+      },
+      {
+        "name": "AmBank",
+        "phone": "03-2178 8888",
+        "source": "https://www.abm.org.my/safe-online-banking/directory/"
+      },
+      {
+        "name": "CIMB",
+        "phone": "03-6204 7788",
+        "source": "https://www.abm.org.my/safe-online-banking/directory/"
+      },
+      {
+        "name": "Hong Leong Bank",
+        "phone": "03-7626 8899",
+        "source": "https://www.abm.org.my/safe-online-banking/directory/"
+      },
+      {
+        "name": "HSBC Malaysia",
+        "phone": "1300-88-1388",
+        "source": "https://www.abm.org.my/safe-online-banking/directory/"
+      },
+      {
+        "name": "Maybank",
+        "phone": "03-5891 4744",
+        "source": "https://www.abm.org.my/safe-online-banking/directory/"
+      },
+      {
+        "name": "OCBC (Personal)",
+        "phone": "03-8317 5000",
+        "source": "https://www.abm.org.my/safe-online-banking/directory/"
+      },
+      {
+        "name": "OCBC (Business)",
+        "phone": "03-8317 5200",
+        "source": "https://www.abm.org.my/safe-online-banking/directory/"
+      },
+      {
+        "name": "Public Bank",
+        "phone": "03-2177 3555",
+        "source": "https://www.abm.org.my/safe-online-banking/directory/"
+      },
+      {
+        "name": "RHB",
+        "phone": "03-9206 8118",
+        "source": "https://www.abm.org.my/safe-online-banking/directory/"
+      },
+      {
+        "name": "Standard Chartered",
+        "phone": "03-7849 6888",
+        "source": "https://www.abm.org.my/safe-online-banking/directory/"
+      },
+      {
+        "name": "UOB Malaysia",
+        "phone": "03-2612 8100",
+        "source": "https://www.abm.org.my/safe-online-banking/directory/"
+      },
+      {
+        "name": "Bank Islam",
+        "phone": "03-2690 0900",
+        "source": "https://www.bankislam.com/wp-content/uploads/FAQ-New-Safety-Measures-1.pdf"
+      },
+      {
+        "name": "BSN",
+        "phone": "03-2613 1900",
+        "source": "https://www.bsn.com.my/page/sms-phone-scam?lang=en"
+      },
+      {
+        "name": "Bank Rakyat",
+        "phone": "1-300-80-2273",
+        "source": "https://www.irakyat.com.my/portal-main/faq"
+      },
+      {
+        "name": "Agrobank",
+        "phone": "1-300-88-2476",
+        "source": "https://www.agrobank.com.my/wp-content/uploads/2025/07/BM-RIB-FAQ-03122025.pdf"
+      }
+    ]
+  }
 }

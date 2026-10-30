@@ -60,6 +60,14 @@ const out=path.join(scratch,'design-qa');fs.mkdirSync(out,{recursive:true});
    console.log('Rendering',language,width);await page.setViewportSize({width,height:900});
    await page.goto('http://127.0.0.1:8794');await page.selectOption('#language',language);await page.waitForFunction(()=>document.getElementById('saved-case').value);
    await audit(page,language+'/connect',width);
+   await page.locator('#bank-directory summary').click();
+   await audit(page,language+'/bank-directory',width);
+   assert.equal(await page.locator('#agency-contacts article').count(),4);
+   assert.equal(await page.locator('#bank-contacts article').count(),17);
+   for(const logo of await page.locator('.agency-logo').all())assert.equal(await logo.evaluate(el=>el.complete&&el.naturalWidth>0),true);
+   if(width===1280&&language==='ms'){await page.locator('#reporting-channels').screenshot({path:path.join(out,'ms-reporting-channels.png')})}
+   await page.locator('#bank-directory summary').click();
+
    for(const kind of ['delete','history']){
     await page.evaluate(kind=>{void confirmAction(kind,'EVIDEX_case_with_a_long_name_20261030_0123456789')},kind);
     await audit(page,language+'/confirm-'+kind,width);

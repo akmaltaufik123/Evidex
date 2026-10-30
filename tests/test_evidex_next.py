@@ -314,6 +314,20 @@ class NativeHttpTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response.status, 400)
         self.assertTrue(case.exists())
 
+    async def test_official_contact_directory_and_local_logo_assets(self):
+        catalog = json.loads(Path('evidex_next_content.json').read_text())
+        self.assertEqual(len(catalog['contacts']['agencies']), 4)
+        self.assertEqual(len(catalog['contacts']['banks']), 17)
+        for entry in catalog['contacts']['agencies']:
+            response = await self.client.get('/agency-assets/' + entry['logo'])
+            self.assertEqual(response.status, 200)
+            self.assertEqual(response.content_type, 'image/png')
+            self.assertTrue((await response.read()).startswith(b'\x89PNG'))
+            self.assertTrue(entry['source'].startswith('https://'))
+        self.assertEqual((await self.client.get('/agency-assets/not-a-logo.png')).status, 404)
+        self.assertIn('helpReview', catalog['ms'])
+        self.assertIn('helpReview', catalog['en'])
+
     async def test_stylesheet_route_and_policy_allow_locked_theme(self):
         response = await self.client.get("/app.css")
         self.assertEqual(response.status, 200)

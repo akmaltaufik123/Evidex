@@ -28,7 +28,7 @@ from telegram_connection import (
     connection_error_detail, parse_proxy_url,
 )
 
-VERSION = "0.2.3"
+VERSION = "0.2.4"
 # Both TCP transports worked in the operator's standalone test. HTTP/TLS did not.
 TRANSPORTS = TELEGRAM_TRANSPORTS[:2]
 
@@ -440,6 +440,13 @@ def create_app() -> web.Application:
     async def stylesheet(request):
         return web.FileResponse(Path(__file__).with_suffix(".css"), headers={"Content-Type": "text/css", "Cache-Control": "no-store"})
 
+    async def agency_asset(request):
+        name = request.match_info["name"]
+        if name not in {"mcmc.png", "pdrm.png", "nsrc.png", "cybersecurity-malaysia.png"}:
+            raise web.HTTPNotFound()
+        return web.FileResponse(Path(__file__).with_name("agency_assets") / name,
+                                headers={"Content-Type": "image/png", "X-Content-Type-Options": "nosniff"})
+
     async def guide_asset(request):
         name = request.match_info["name"]
         if not re.fullmatch(r"0[1-6]-[a-z-]+\.webp", name):
@@ -495,6 +502,7 @@ def create_app() -> web.Application:
     app.router.add_post("/api/answer", answer)
     app.router.add_post("/api/cancel", cancel)
     app.router.add_get("/guide-assets/{name}", guide_asset)
+    app.router.add_get("/agency-assets/{name}", agency_asset)
     app.router.add_get("/api/messages", messages)
     app.router.add_get("/api/attachment", attachment)
     app.router.add_get("/api/results", results)

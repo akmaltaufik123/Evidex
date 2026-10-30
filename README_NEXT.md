@@ -162,3 +162,11 @@ confirmation and only hides existing cases from the results list. Original
 folders remain on disk and new results appear normally. The hidden-history index
 is separate from evidence files and survives a server restart. Neither action is
 available while acquisition is running. Session files are not part of these actions.
+
+## Official reporting channels
+
+The directory below saved results includes SKMM, PDRM, Cyber999, NSRC and a
+collapsible bank contact list. Users review and submit their own complaints;
+EVIDEX does not send reports or attach evidence. Phone links open a dialer where
+supported, and email links open the user's own mail application. Details were
+checked on 30 October 2026 and include sources; see `CONTACT_CHANNELS.md`.

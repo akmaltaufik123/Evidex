@@ -49,6 +49,12 @@ class Element{
   get('language').value='en';get('language').listeners.change();await new Promise(resolve=>setImmediate(resolve));assert.equal(get('api_hash').value,'a'.repeat(32));
   await get('view-messages').listeners.click();await new Promise(resolve=>setImmediate(resolve));assert.equal(get('viewer-dialog').open,true);
   assert.equal(get('message-list').children[0].children[1].textContent,'<script>not executable</script>');
+  assert.equal(get('agency-contacts').children.length,4);
+  assert.equal(get('bank-contacts').children.length,17);
+  const directory=JSON.stringify(copy.contacts);
+  assert(directory.includes('aduanskmm@mcmc.gov.my'));
+  assert(directory.includes('cyber999@cybersecurity.my'));
+  assert(!directory.includes('mailto:')&&!directory.includes('?body='));
   assert(!html.includes('window.confirm'));
   let confirmation=vm.runInContext("confirmAction('delete','<case-name>')",context);
   assert.equal(get('confirm-dialog').open,true);

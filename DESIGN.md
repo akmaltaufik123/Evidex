@@ -146,3 +146,13 @@ single-line controls. Self-review: P4 H4 E4 S5 R5 V4.
 Saved-result actions share one wrapping row: view messages, open folder, refresh,
 delete selected files and clear history. Buttons retain their existing sizing;
 on narrow screens they wrap as whole controls.
+
+## Version 0.2.4 reporting directory
+
+A separate section below saved results offers official channels without changing
+acquisition. Four agency cards have locally served authentic logos, purpose,
+telephone links, verified email where applicable and source links. Banks are in a
+collapsible directory to keep the initial workspace focused. No evidence is sent
+by these controls. Users review and choose what they share. Reference links do
+not imply partnership; PDRM general email is not labelled a formal police report.
+Theme and fonts remain locked. Self-review: P4 H4 E4 S5 R5 V4.
