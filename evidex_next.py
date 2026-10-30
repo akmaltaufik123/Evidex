@@ -21,6 +21,7 @@ from telethon.errors import (
 )
 from telethon.sessions import StringSession
 
+from evidence_excel import write_excel
 from evidence_store import utc_now, safe_name, sha256_file, write_json, write_manifest
 from telegram_connection import (
     TELEGRAM_TRANSPORTS, connect_client, disconnect_client,
@@ -64,10 +65,13 @@ def validate(payload: dict[str, Any]) -> dict[str, Any]:
         directory = Path(os.getenv("EVIDEX_SESSION_DIR", ".evidex_sessions"))
         path = directory / ("evidex_" + hashlib.sha256(phone.encode()).hexdigest()[:12])
     proxy_text = str(payload.get("proxy", "")).strip()
+    case_name = str(payload.get("case", "")).strip() or "case"
+    if len(case_name) > 120 or any(ord(char) < 32 for char in case_name):
+        raise ValueError("Evidence name must be at most 120 characters without control characters.")
     config.update(phone=phone, target=target, session=path,
                   proxy=parse_proxy_url(proxy_text) if proxy_text else None,
                   limit=int(limit) if limit else None,
-                  case=safe_name(str(payload.get("case", "case"))),
+                  case=safe_name(case_name), case_name=case_name,
                   output=Path(os.getenv("EVIDEX_EXPORT_DIR", "evidence_exports")),
                   media=payload.get("media") is True)
     return config
@@ -189,7 +193,7 @@ class Engine:
         case = root / f"EVIDEX_{config['case']}_{utc_now():%Y%m%dT%H%M%S}_{secrets.token_hex(4)}"
         case.mkdir()
         self.state["output"] = str(case.resolve())
-        metadata = dict(tool="EVIDEX Next", tool_version=VERSION, case_id=config["case"],
+        metadata = dict(tool="EVIDEX Next", tool_version=VERSION, case_id=config["case"], case_name=config.get("case_name", config["case"]),
                         acquisition_started_utc=started, source={"platform": "Telegram",
                         "requested_target": target, "entity_id": getattr(entity, "id", None)},
                         settings={"ordering": "oldest_to_newest", "message_limit": config["limit"],
@@ -239,13 +243,21 @@ class Engine:
             failure = connection_error_detail(error)
             raise
         finally:
-            report = dict(case_id=config["case"], status=status, started_utc=started,
+            excel_error = None
+            try:
+                write_excel(case, config.get("case_name", config["case"]))
+            except Exception as error:
+                excel_error = error
+                status, failure = "failed", "Excel export failed: " + type(error).__name__
+            report = dict(case_name=config.get("case_name", config["case"]), case_id=config["case"], status=status, started_utc=started,
                           finished_utc=utc_now().isoformat(), messages_acquired=self.state["messages"],
                           media_files_acquired=self.state["media"], media_download_errors=media_errors, failure=failure)
             metadata.update(acquisition_status=status, result=report)
             write_json(case / "metadata.json", metadata)
             write_json(case / "acquisition_report.json", report)
             write_manifest(case)
+            if excel_error is not None:
+                raise excel_error
 
 
 def evidence_root() -> Path:

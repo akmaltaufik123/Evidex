@@ -138,3 +138,18 @@ This removes the terminal/browser bridge and implicit connection settings.
 It cannot guarantee that Telegram endpoints are reachable on every network.
 Live account authorization and acquisition must still be confirmed locally;
 no real Telegram credentials were used during development.
+
+## Custom evidence name and Excel
+
+The optional Evidence name field is blank initially. Enter your own case/result
+name; the folder component is sanitized, while the original label is retained in
+metadata, the report and the workbook. Blank uses `case`.
+
+New acquisitions also produce `messages.xlsx` before the SHA-256 manifest is
+finalized, including partial results after cancellation. Install the updated
+`requirements-next.txt` first. Existing exports are not rewritten.
+
+Excel keeps numeric 0 visible and stores IDs as literal text to retain leading
+zeros and long identifiers. Missing values remain blank. Message text is never
+interpreted as a formula. The About sheet explains that this is a viewing copy;
+JSONL remains the source, including any characters Excel cannot represent.

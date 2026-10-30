@@ -131,3 +131,18 @@ dialog::backdrop { background: var(--color-overlay); }
 }
 
 .field-help { margin-top: 14px; padding-top: 0; border: 0; }
+
+/* Separate inputs, actions and the technical readout. */
+.grid { grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: 24px; align-items: stretch; }
+.profile-panel h2 { margin-bottom: 24px; }
+.control-panel .wizard-nav { margin-top: 16px; justify-content: flex-start; }
+.control-panel #test-area { margin-bottom: 16px; }
+.control-panel .steps { border-top: 1px solid var(--color-rule); padding-top: 20px; margin-top: 24px; }
+.control-panel #cancel { margin-top: 18px; }
+.terminal-panel { margin-top: 24px; }
+.terminal-panel h2 { margin-bottom: 6px; }
+.terminal-panel .hint { margin: 0 0 16px; }
+.terminal-panel pre { margin: 0; min-height: 150px; max-height: 320px; }
+@media(max-width: 768px) {
+  .grid { grid-template-columns: minmax(0, 1fr); }
+}

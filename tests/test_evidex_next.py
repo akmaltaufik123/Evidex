@@ -60,6 +60,14 @@ class EngineTests(unittest.IsolatedAsyncioTestCase):
                 await asyncio.sleep(0)
         await asyncio.wait_for(wait(), timeout=1)
 
+    def test_custom_name_is_preserved_and_folder_is_safe(self):
+        config = validate(dict(PAYLOAD, case="Bukti saya / 零 0"))
+        self.assertEqual(config["case_name"], "Bukti saya / 零 0")
+        self.assertNotIn("/", config["case"])
+        self.assertEqual(validate(dict(PAYLOAD, case=""))["case_name"], "case")
+        with self.assertRaises(ValueError):
+            validate(dict(PAYLOAD, case="x" * 121))
+
     async def test_native_acquisition_exports_and_hashes(self):
         client = fake_client()
         with patch("evidex_next.connect_client", new=AsyncMock(return_value=client)) as connect:
@@ -72,6 +80,8 @@ class EngineTests(unittest.IsolatedAsyncioTestCase):
         report = json.loads((case / "acquisition_report.json").read_text())
         self.assertEqual(report["status"], "complete")
         self.assertEqual(report["messages_acquired"], 1)
+        self.assertTrue((case / "messages.xlsx").is_file())
+        self.assertIn("messages.xlsx", (case / "manifest.sha256").read_text())
         for line in (case / "manifest.sha256").read_text().splitlines():
             digest, name = line.split("  ", 1)
             self.assertEqual(digest, hashlib.sha256((case / name).read_bytes()).hexdigest())
@@ -80,6 +90,18 @@ class EngineTests(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn(PAYLOAD["api_hash"], json.dumps(self.engine.state))
         self.assertNotIn(PAYLOAD["phone"], (case / "metadata.json").read_text())
         client.disconnect.assert_awaited_once()
+
+    async def test_excel_failure_still_finalizes_report_and_manifest(self):
+        with patch("evidex_next.connect_client", new=AsyncMock(return_value=fake_client())), patch(
+                "evidex_next.write_excel", side_effect=OSError("fixture failure")):
+            self.engine.start(validate(PAYLOAD))
+            await self.engine.task
+        self.assertEqual(self.engine.state["stage"], "failed")
+        case = Path(self.engine.state["output"])
+        report = json.loads((case / "acquisition_report.json").read_text())
+        self.assertEqual(report["status"], "failed")
+        self.assertIn("Excel export failed", report["failure"])
+        self.assertTrue((case / "manifest.sha256").is_file())
 
     async def test_media_attachment_is_hashed_including_manifest_filename(self):
         from evidence_store import write_manifest
@@ -200,6 +222,8 @@ class EngineTests(unittest.IsolatedAsyncioTestCase):
         report = json.loads((case / "acquisition_report.json").read_text())
         self.assertEqual(report["status"], "cancelled")
         self.assertEqual(report["messages_acquired"], 1)
+        self.assertTrue((case / "messages.xlsx").is_file())
+        self.assertIn("messages.xlsx", (case / "manifest.sha256").read_text())
         self.assertTrue((case / "manifest.sha256").is_file())
         self.assertFalse(self.engine.state["busy"])
 

@@ -17,7 +17,7 @@ the Telegram engine as a design change.
 ## Durable preview block
 
 - Genre: modern-minimal, calm and utilitarian.
-- Macrostructure: guided workbench; form and live state share the work area,
+- Macrostructure: guided workbench; inputs occupy the left panel, job actions and live state the right; a full-width activity log sits below both,
   then a separate saved-evidence shelf. No marketing hero/feature/CTA sequence.
 - Theme: Paper & Ink (Kertas & Dakwat), a custom application theme informed by
   the restrained paper surfaces of Hallmark's Ink reference.
@@ -80,7 +80,7 @@ skill has been installed into or replaced in this repository.
 | Axis | Score | Basis |
 | --- | --- | --- |
 | Philosophy | 4/5 | Task-first application; no promotional proof invented |
-| Hierarchy | 4/5 | One form step, adjacent live state, separate saved-evidence shelf |
+| Hierarchy | 4/5 | Left inputs, right job controls, full-width activity log and results shelf |
 | Execution | 4/5 | Browser states, focus, contrast and narrow controls verified |
 | Specificity | 5/5 | Real EVIDEX account, acquisition and evidence-file workflow |
 | Restraint | 5/5 | Locked palette, local fonts, flat surfaces, no ornamental chrome |
@@ -111,3 +111,15 @@ both languages, guide navigation, wizard validation and text-only message
 rendering. `tests/test_design_render.cjs` uses mock Telegram responses and real
 Chromium; no live login is needed. Original guide files remain in the repository
 for compatibility but are absent from the active guide catalog.
+
+## Local layout preview
+
+Requested rework: form fields on the left; test, navigation, start and cancel in
+the right control panel; an always-visible activity log below the work area.
+On mobile these follow the same reading order in one column. Start retains its
+association with the existing profile form. Backend and evidence behavior are unchanged.
+
+The optional custom evidence-name field is initially blank, labelled in both
+languages and limited to 120 characters. It uses existing form tokens and appears
+in the content step. New acquisitions include an Excel viewing copy; no old
+export is modified.
