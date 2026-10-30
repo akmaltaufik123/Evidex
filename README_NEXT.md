@@ -170,3 +170,11 @@ collapsible bank contact list. Users review and submit their own complaints;
 EVIDEX does not send reports or attach evidence. Phone links open a dialer where
 supported, and email links open the user's own mail application. Details were
 checked on 30 October 2026 and include sources; see `CONTACT_CHANNELS.md`.
+
+## Browser-only hosted beta
+
+`evidex_hosted.py`, `Dockerfile` and `railway.toml` prepare a separate hosted
+service so visitors do not install anything. This is not the shared localhost
+server exposed publicly. Each browser workspace has isolated Telegram sessions,
+jobs and results, with ZIP/Excel download. Deployment prerequisites, limits and
+the current Railway provisioning blocker are in `HOSTED_DEPLOYMENT.md`.

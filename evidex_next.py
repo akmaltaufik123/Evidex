@@ -33,7 +33,7 @@ VERSION = "0.2.4"
 TRANSPORTS = TELEGRAM_TRANSPORTS[:2]
 
 
-def validate(payload: dict[str, Any]) -> dict[str, Any]:
+def validate(payload: dict[str, Any], *, output_root: Path | None = None, session_root: Path | None = None) -> dict[str, Any]:
     """Copy only accepted values; never reflect credentials in validation errors."""
     mode = payload.get("mode", "test")
     if mode not in {"test", "acquire"}:
@@ -62,7 +62,7 @@ def validate(payload: dict[str, Any]) -> dict[str, Any]:
         if path.suffix != ".session" or not path.is_file():
             raise ValueError("Select an existing .session file, or leave the field blank.")
     else:
-        directory = Path(os.getenv("EVIDEX_SESSION_DIR", ".evidex_sessions"))
+        directory = session_root if session_root is not None else Path(os.getenv("EVIDEX_SESSION_DIR", ".evidex_sessions"))
         path = directory / ("evidex_" + hashlib.sha256(phone.encode()).hexdigest()[:12])
     proxy_text = str(payload.get("proxy", "")).strip()
     case_name = str(payload.get("case", "")).strip() or "case"
@@ -72,7 +72,7 @@ def validate(payload: dict[str, Any]) -> dict[str, Any]:
                   proxy=parse_proxy_url(proxy_text) if proxy_text else None,
                   limit=int(limit) if limit else None,
                   case=safe_name(case_name), case_name=case_name,
-                  output=Path(os.getenv("EVIDEX_EXPORT_DIR", "evidence_exports")),
+                  output=output_root if output_root is not None else Path(os.getenv("EVIDEX_EXPORT_DIR", "evidence_exports")),
                   media=payload.get("media") is True)
     return config
 
@@ -199,6 +199,7 @@ class Engine:
                         settings={"ordering": "oldest_to_newest", "message_limit": config["limit"],
                                   "download_media": config["media"], "proxy_used": config["proxy"] is not None})
         status, failure, media_errors = "failed", None, 0
+        media_bytes = 0
         try:
             write_json(case / "metadata.json", metadata)
             if config["media"]:
@@ -213,10 +214,17 @@ class Engine:
                                  "size_bytes": getattr(message.file, "size", None)}
                         if config["media"]:
                             try:
+                                size = getattr(message.file, "size", None)
+                                max_file = config.get("max_media_file_bytes")
+                                if max_file is not None and (size is None or size > max_file):
+                                    raise ValueError("Media file exceeds hosted download limit")
+                                if config.get("max_media_bytes") is not None and media_bytes + size > config["max_media_bytes"]:
+                                    raise ValueError("Hosted media quota reached")
                                 saved = await client.download_media(message, file=str(case / "media"))
                                 if saved:
                                     path = Path(saved).resolve()
                                     media.update(saved_path=path.relative_to(case.resolve()).as_posix(), sha256=sha256_file(path))
+                                    media_bytes += path.stat().st_size
                                     self.state["media"] += 1
                             except Exception as error:
                                 media_errors += 1
@@ -264,9 +272,9 @@ def evidence_root() -> Path:
     return Path(os.getenv("EVIDEX_EXPORT_DIR", "evidence_exports")).resolve()
 
 
-def evidence_case(name: str) -> Path:
+def evidence_case(name: str, root: Path | None = None) -> Path:
     """Only allow an existing case directly inside the configured export root."""
-    root = evidence_root()
+    root = evidence_root() if root is None else root.resolve()
     if not isinstance(name, str) or not name.startswith("EVIDEX_") or Path(name).name != name:
         raise ValueError("Invalid evidence case")
     if (root / name).is_symlink():
@@ -277,8 +285,8 @@ def evidence_case(name: str) -> Path:
     return case
 
 
-def recent_evidence() -> list[dict[str, Any]]:
-    root = evidence_root()
+def recent_evidence(root: Path | None = None) -> list[dict[str, Any]]:
+    root = evidence_root() if root is None else root.resolve()
     if not root.is_dir():
         return []
     history = root / ".hidden_history.json"
@@ -286,7 +294,7 @@ def recent_evidence() -> list[dict[str, Any]]:
     results = []
     for path in sorted(root.glob("EVIDEX_*"), key=lambda item: item.lstat().st_mtime, reverse=True):
         try:
-            case = evidence_case(path.name)
+            case = evidence_case(path.name, root)
             if case.name in hidden:
                 continue
             report = json.loads((case / "acquisition_report.json").read_text(encoding="utf-8"))

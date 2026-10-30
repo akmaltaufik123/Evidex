@@ -1,0 +1,8 @@
+.git
+.env*
+*.session*
+evidence_exports
+.evidex_sessions
+__pycache__
+venv
+.venv

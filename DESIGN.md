@@ -156,3 +156,13 @@ collapsible directory to keep the initial workspace focused. No evidence is sent
 by these controls. Users review and choose what they share. Reference links do
 not imply partnership; PDRM general email is not labelled a formal police report.
 Theme and fonts remain locked. Self-review: P4 H4 E4 S5 R5 V4.
+
+## Hosted beta adapter
+
+The hosted entry point reuses the workbench and translations while replacing
+server filesystem actions with token-protected ZIP/Excel downloads. Explicit
+server-processing consent is visible before connection. Advanced server-path and
+proxy controls are omitted. Text discloses server storage and browser-cookie
+workspace access without claiming registered accounts. P4 H4 E4 S5 R5 V4; hosted
+mock acquisition/downloads passed both languages at five mobile/desktop widths.
+See HOSTED_DEPLOYMENT.md for deployment state and beta limits.
