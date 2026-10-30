@@ -27,7 +27,7 @@
     "target": "Telegram source",
     "targetPlaceholder": "@username, public t.me link or supported numeric ID",
     "sourceHint": "Open the Telegram group/channel profile to find its public link or username. EVIDEX does not automatically join private invite links.",
-    "case": "Evidence name (optional)",
+    "case": "Result file / folder name (optional)",
     "limit": "Message limit",
     "limitPlaceholder": "Blank = all available messages",
     "mediaCheck": "Include photos, videos and documents, with file hashes",
@@ -106,7 +106,14 @@
     "controls": "Job controls",
     "logHint": "Connection and evidence collection events appear here.",
     "casePlaceholder": "Example: October scam report",
-    "caseHint": "Choose your own name. If blank, the default is case. The folder name is made safe; your original name is kept in metadata and Excel."
+    "caseHint": "Example: October report. This names the result folder; the Excel file inside is messages.xlsx.",
+    "deleteResult": "Delete selected files",
+    "clearHistory": "Clear history",
+    "historyHint": "Delete files removes the selected result folder. Clear history only hides the list; files stay on this computer.",
+    "deleteConfirm": "Delete this ENTIRE result folder, including Excel, messages and media? This cannot be undone.",
+    "deleted": "Result folder deleted.",
+    "historyConfirm": "Clear the previous results list? Evidence files will stay on disk. New results will appear normally.",
+    "historyCleared": "History cleared. Evidence files remain on this computer."
   },
   "ms": {
     "workspace": "RUANG KERJA TEMPATAN",
@@ -136,7 +143,7 @@
     "target": "Sumber Telegram",
     "targetPlaceholder": "@username, pautan awam t.me atau ID angka yang disokong",
     "sourceHint": "Buka profil kumpulan/saluran Telegram untuk cari pautan awam atau nama pengguna. EVIDEX tidak menyertai pautan jemputan peribadi secara automatik.",
-    "case": "Nama hasil bukti (pilihan)",
+    "case": "Nama fail / folder hasil (pilihan)",
     "limit": "Had mesej",
     "limitPlaceholder": "Kosong = semua mesej yang tersedia",
     "mediaCheck": "Sertakan gambar, video dan dokumen, bersama hash fail",
@@ -215,7 +222,14 @@
     "controls": "Kawalan kerja",
     "logHint": "Peristiwa sambungan dan pengumpulan bukti dipaparkan di sini.",
     "casePlaceholder": "Contoh: Aduan penipuan Oktober",
-    "caseHint": "Pilih nama sendiri. Jika kosong, nama lalai ialah case. Nama folder disesuaikan supaya selamat; nama asal disimpan dalam metadata dan Excel."
+    "caseHint": "Contoh: Aduan Oktober. Nama ini digunakan pada folder hasil; fail Excel di dalamnya bernama messages.xlsx.",
+    "deleteResult": "Padam fail dipilih",
+    "clearHistory": "Kosongkan sejarah",
+    "historyHint": "Padam fail: buang seluruh folder hasil yang dipilih. Kosongkan sejarah: sembunyikan senarai sahaja, fail kekal dalam komputer.",
+    "deleteConfirm": "Padam SELURUH folder hasil ini, termasuk Excel, mesej dan media? Tindakan ini tidak boleh diundur.",
+    "deleted": "Folder hasil dipadam.",
+    "historyConfirm": "Kosongkan senarai hasil terdahulu? Fail bukti tidak dipadam. Hasil baharu akan muncul seperti biasa.",
+    "historyCleared": "Sejarah dikosongkan. Fail bukti masih ada dalam komputer."
   },
   "guide": [
     {
@@ -223,17 +237,15 @@
       "en": {
         "title": "Sign in to Telegram’s developer portal",
         "steps": [
-          "Open my.telegram.org using the official link below. Enter the phone number linked to your own Telegram account.",
-          "Follow the portal’s verification instructions. Check your Telegram app for the message if the portal directs you there.",
-          "The portal login code belongs on my.telegram.org. It is separate from any EVIDEX login request later."
+          "Open my.telegram.org. Enter your Telegram phone number.",
+          "Get the code from Telegram and enter it on that portal, not EVIDEX."
         ]
       },
       "ms": {
         "title": "Log masuk ke portal pembangun Telegram",
         "steps": [
-          "Buka my.telegram.org melalui pautan rasmi di bawah. Masukkan nombor telefon akaun Telegram anda sendiri.",
-          "Ikuti arahan pengesahan portal. Semak mesej dalam aplikasi Telegram jika portal mengarahkan anda ke situ.",
-          "Kod log masuk portal dimasukkan di my.telegram.org. Ia berasingan daripada permintaan log masuk EVIDEX kemudian."
+          "Buka my.telegram.org. Masukkan nombor telefon Telegram anda.",
+          "Ambil kod daripada Telegram dan masukkan di portal itu, bukan EVIDEX."
         ]
       },
       "url": "https://my.telegram.org"
@@ -243,17 +255,15 @@
       "en": {
         "title": "Get your API ID and API hash",
         "steps": [
-          "Choose “API development tools”. Complete the application form requested by Telegram, including an application title and short name.",
-          "If an application already exists, use its existing API ID and API hash. Copy the numeric ID and hash into the matching EVIDEX fields.",
-          "Keep both private. This is a Telegram client application, not a bot; a BotFather token will not work."
+          "Choose “API development tools”. Fill in the form if asked.",
+          "Copy API ID and API hash into EVIDEX. Keep them private; these are not a bot token."
         ]
       },
       "ms": {
         "title": "Dapatkan API ID dan API hash anda",
         "steps": [
-          "Pilih “API development tools”. Lengkapkan borang aplikasi yang diminta Telegram, termasuk tajuk aplikasi dan nama pendek.",
-          "Jika aplikasi sudah wujud, gunakan API ID dan API hash sedia ada. Salin ID angka dan hash ke medan EVIDEX yang sepadan.",
-          "Simpan kedua-duanya secara peribadi. Ini aplikasi klien Telegram, bukan bot; token BotFather tidak boleh digunakan."
+          "Pilih “API development tools”. Isi borang jika diminta.",
+          "Salin API ID dan API hash ke EVIDEX. Simpan rahsia; ini bukan token bot."
         ]
       },
       "url": "https://core.telegram.org/api/obtaining_api_id"
@@ -263,17 +273,15 @@
       "en": {
         "title": "Check EVIDEX connectivity",
         "steps": [
-          "Choose your language at the top of EVIDEX. Enter your own API ID and API hash in step 1.",
-          "Select “Test direct connection”. A pass means the transport connected; it does not mean your account has logged in.",
-          "If the test fails, open Technical details and keep the safe diagnostic message. Do not delete session files or share credentials."
+          "Enter an optional result name, API ID and API hash. Press “Test direct connection”.",
+          "If it passes, press Continue. This test does not log in. If it fails, check the log below."
         ]
       },
       "ms": {
         "title": "Semak sambungan EVIDEX",
         "steps": [
-          "Pilih bahasa di bahagian atas EVIDEX. Masukkan API ID dan API hash anda pada langkah 1.",
-          "Pilih “Uji sambungan terus”. Kejayaan bermaksud sambungan pengangkutan berjaya, bukan akaun telah log masuk.",
-          "Jika ujian gagal, buka Butiran teknikal dan simpan mesej diagnosis yang selamat. Jangan padam fail sesi atau kongsi kelayakan akses."
+          "Isi nama hasil (pilihan), API ID dan API hash. Tekan “Uji sambungan terus”.",
+          "Jika berjaya, tekan “Teruskan”. Ujian ini belum log masuk akaun. Jika gagal, semak log di bawah."
         ]
       },
       "url": null
@@ -283,17 +291,15 @@
       "en": {
         "title": "Find the Telegram source",
         "steps": [
-          "In Telegram, open the group or channel you are authorized to access. Select its name to view its profile.",
-          "Find the public link or username, such as t.me/example or @example, and copy it into EVIDEX’s source field.",
-          "Private invite links are not joined automatically. For a private source, the account must already have access and the source reference must be supported."
+          "Open the Telegram group or channel. Tap its name.",
+          "Copy its public link or @username into EVIDEX. Your account needs access; private invite links are not joined automatically."
         ]
       },
       "ms": {
         "title": "Cari sumber Telegram",
         "steps": [
-          "Dalam Telegram, buka kumpulan atau saluran yang anda dibenarkan akses. Pilih namanya untuk melihat profil.",
-          "Cari pautan awam atau nama pengguna, seperti t.me/example atau @example, kemudian salin ke medan sumber EVIDEX.",
-          "Pautan jemputan peribadi tidak disertai secara automatik. Untuk sumber peribadi, akaun mesti sudah mempunyai akses dan rujukan sumber perlu disokong."
+          "Buka kumpulan atau saluran dalam Telegram. Tekan namanya.",
+          "Salin pautan awam atau @username ke EVIDEX. Akaun anda mesti ada akses; pautan jemputan peribadi tidak disertai automatik."
         ]
       },
       "url": null
@@ -303,17 +309,15 @@
       "en": {
         "title": "Authorize your own account",
         "steps": [
-          "Choose the message limit and media option, then review the details and confirm your authorization before starting.",
-          "When EVIDEX asks for a code, follow Telegram’s delivery instructions for the login you just initiated. Only enter it in your own local EVIDEX page.",
-          "If your account has two-step verification enabled, enter that password when prompted. An already-authorized session may skip these prompts. Never send the code or password to another person."
+          "Enter your phone, source, message limit and media choice. Review, confirm permission and start.",
+          "If asked, enter the Telegram code and two-step password only in your own EVIDEX. Never share them."
         ]
       },
       "ms": {
         "title": "Sahkan akaun anda sendiri",
         "steps": [
-          "Pilih had mesej dan pilihan media, kemudian semak maklumat dan sahkan kebenaran sebelum bermula.",
-          "Apabila EVIDEX meminta kod, ikuti arahan penghantaran Telegram bagi log masuk yang anda baru mulakan. Masukkan hanya pada halaman EVIDEX tempatan anda sendiri.",
-          "Jika akaun mengaktifkan pengesahan dua langkah, masukkan kata laluan itu apabila diminta. Sesi yang sudah disahkan mungkin melangkau langkah ini. Jangan hantar kod atau kata laluan kepada orang lain."
+          "Isi nombor telefon, sumber, had mesej dan pilihan media. Semak, tanda kebenaran dan tekan mula.",
+          "Jika diminta, masukkan kod Telegram dan kata laluan dua langkah di EVIDEX anda sahaja. Jangan kongsi dengan orang lain."
         ]
       },
       "url": "https://telegram.org/faq"
@@ -323,17 +327,15 @@
       "en": {
         "title": "Read and preserve the results",
         "steps": [
-          "Wait for the completion notice, or use “Stop and save” if you need to stop.",
-          "Select a saved case. Use “View messages” to search and read messages, or “Open evidence folder” for the original files and media.",
-          "Keep the original folder unchanged. The SHA-256 manifest checks whether files still match the saved hashes; it does not by itself prove authorship or truth."
+          "Wait until finished. Select a result and press View messages or Open evidence folder.",
+          "For Excel, open messages.xlsx. Keep originals. Hashes check file changes, not whether messages are true."
         ]
       },
       "ms": {
         "title": "Baca dan simpan hasil bukti",
         "steps": [
-          "Tunggu notifikasi selesai, atau pilih “Hentikan dan simpan” jika perlu berhenti.",
-          "Pilih kes tersimpan. Gunakan “Lihat mesej” untuk mencari dan membaca mesej, atau “Buka folder bukti” untuk fail asal dan media.",
-          "Kekalkan folder asal tanpa perubahan. Manifest SHA-256 menyemak padanan fail dengan hash tersimpan; ia tidak dengan sendirinya membuktikan pengarang atau kebenaran kandungan."
+          "Tunggu sehingga selesai. Pilih hasil dan tekan “Lihat mesej” atau “Buka folder bukti”.",
+          "Excel: buka messages.xlsx. Simpan fail asal. Hash menyemak perubahan fail, bukan membuktikan kebenaran mesej."
         ]
       },
       "url": null

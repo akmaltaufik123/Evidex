@@ -141,7 +141,7 @@ no real Telegram credentials were used during development.
 
 ## Custom evidence name and Excel
 
-The optional Evidence name field is blank initially. Enter your own case/result
+The optional Evidence name field is blank initially and visible above the form from step 1. Enter your own case/result
 name; the folder component is sanitized, while the original label is retained in
 metadata, the report and the workbook. Blank uses `case`.
 
@@ -153,3 +153,12 @@ Excel keeps numeric 0 visible and stores IDs as literal text to retain leading
 zeros and long identifiers. Missing values remain blank. Message text is never
 interpreted as a formula. The About sheet explains that this is a viewing copy;
 JSONL remains the source, including any characters Excel cannot represent.
+
+## Managing results
+
+Delete selected files asks for confirmation, then permanently removes the selected
+case folder, including messages, Excel and media. Clear history asks for
+confirmation and only hides existing cases from the results list. Original
+folders remain on disk and new results appear normally. The hidden-history index
+is separate from evidence files and survives a server restart. Neither action is
+available while acquisition is running. Session files are not part of these actions.

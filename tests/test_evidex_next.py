@@ -273,6 +273,47 @@ class NativeHttpTests(unittest.IsolatedAsyncioTestCase):
         (case / "messages.txt").write_text("Evidence sentinel")
         return case
 
+    async def test_delete_requires_confirmation_and_only_removes_selected_case(self):
+        case = self.saved_case()
+        other = self.root / "EVIDEX_other"
+        other.mkdir()
+        (other / "acquisition_report.json").write_text('{}')
+        for payload in ({"case": case.name}, {"case": "../outside", "confirmed": True}):
+            response = await self.client.post('/api/delete-result', headers=self.headers, json=payload)
+            self.assertEqual(response.status, 400)
+        self.assertEqual((await self.client.post('/api/delete-result', json={"case": case.name, "confirmed": True})).status, 403)
+        self.app[ENGINE_KEY].state["busy"] = True
+        self.assertEqual((await self.client.post('/api/delete-result', headers=self.headers, json={"case": case.name, "confirmed": True})).status, 409)
+        self.app[ENGINE_KEY].state["busy"] = False
+        response = await self.client.post('/api/delete-result', headers=self.headers, json={"case": case.name, "confirmed": True})
+        self.assertEqual(response.status, 200)
+        self.assertFalse(case.exists())
+        self.assertTrue(other.exists())
+
+    async def test_clear_history_preserves_files_survives_refresh_and_shows_new_cases(self):
+        case = self.saved_case()
+        before = {p.name: p.read_bytes() for p in case.iterdir()}
+        self.assertEqual((await self.client.post('/api/clear-history', json={"confirmed": True})).status, 403)
+        self.assertEqual((await self.client.post('/api/clear-history', headers=self.headers, json={})).status, 400)
+        response = await self.client.post('/api/clear-history', headers=self.headers, json={"confirmed": True})
+        self.assertEqual(response.status, 200)
+        self.assertEqual((await (await self.client.get('/api/results', headers=self.headers)).json())["cases"], [])
+        self.assertEqual(before, {p.name: p.read_bytes() for p in case.iterdir()})
+        from evidex_next import recent_evidence
+        self.assertEqual(recent_evidence(), [])
+        new = self.root / "EVIDEX_new"
+        new.mkdir()
+        (new / 'acquisition_report.json').write_text('{}')
+        self.assertEqual([item['name'] for item in recent_evidence()], [new.name])
+
+    async def test_delete_rejects_symlink(self):
+        case = self.saved_case()
+        alias = self.root / "EVIDEX_alias"
+        alias.symlink_to(case, target_is_directory=True)
+        response = await self.client.post('/api/delete-result', headers=self.headers, json={"case": alias.name, "confirmed": True})
+        self.assertEqual(response.status, 400)
+        self.assertTrue(case.exists())
+
     async def test_stylesheet_route_and_policy_allow_locked_theme(self):
         response = await self.client.get("/app.css")
         self.assertEqual(response.status, 200)

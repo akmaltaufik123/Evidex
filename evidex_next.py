@@ -28,7 +28,7 @@ from telegram_connection import (
     connection_error_detail, parse_proxy_url,
 )
 
-VERSION = "0.2.1"
+VERSION = "0.2.2"
 # Both TCP transports worked in the operator's standalone test. HTTP/TLS did not.
 TRANSPORTS = TELEGRAM_TRANSPORTS[:2]
 
@@ -269,6 +269,8 @@ def evidence_case(name: str) -> Path:
     root = evidence_root()
     if not isinstance(name, str) or not name.startswith("EVIDEX_") or Path(name).name != name:
         raise ValueError("Invalid evidence case")
+    if (root / name).is_symlink():
+        raise ValueError("Evidence links cannot be used")
     case = (root / name).resolve()
     if case.parent != root or not case.is_dir() or not (case / "acquisition_report.json").is_file():
         raise ValueError("Evidence case is unavailable")
@@ -279,10 +281,14 @@ def recent_evidence() -> list[dict[str, Any]]:
     root = evidence_root()
     if not root.is_dir():
         return []
+    history = root / ".hidden_history.json"
+    hidden = set(json.loads(history.read_text(encoding="utf-8")).get("cases", [])) if history.is_file() else set()
     results = []
     for path in sorted(root.glob("EVIDEX_*"), key=lambda item: item.lstat().st_mtime, reverse=True):
         try:
             case = evidence_case(path.name)
+            if case.name in hidden:
+                continue
             report = json.loads((case / "acquisition_report.json").read_text(encoding="utf-8"))
             if not isinstance(report, dict):
                 continue
@@ -404,6 +410,33 @@ def create_app() -> web.Application:
             return web.json_response({"error": f"Could not open a file manager. Open this folder manually: {case}"}, status=503)
         return web.json_response({"ok": True, "path": str(case)})
 
+    async def delete_result(request):
+        payload = await request.json()
+        if not isinstance(payload, dict) or payload.get("confirmed") is not True:
+            raise ValueError()
+        if engine.state["busy"]:
+            return web.json_response({"error": "Wait for the job to finish first."}, status=409)
+        case = evidence_case(payload.get("case"))
+        shutil.rmtree(case)
+        return web.json_response({"ok": True})
+
+    async def clear_history(request):
+        payload = await request.json()
+        if not isinstance(payload, dict) or payload.get("confirmed") is not True:
+            raise ValueError()
+        if engine.state["busy"]:
+            return web.json_response({"error": "Wait for the job to finish first."}, status=409)
+        root = evidence_root()
+        root.mkdir(parents=True, exist_ok=True)
+        names = []
+        for path in root.glob("EVIDEX_*"):
+            try:
+                names.append(evidence_case(path.name).name)
+            except ValueError:
+                continue
+        write_json(root / ".hidden_history.json", {"cases": names})
+        return web.json_response({"ok": True})
+
     async def stylesheet(request):
         return web.FileResponse(Path(__file__).with_suffix(".css"), headers={"Content-Type": "text/css", "Cache-Control": "no-store"})
 
@@ -466,6 +499,8 @@ def create_app() -> web.Application:
     app.router.add_get("/api/attachment", attachment)
     app.router.add_get("/api/results", results)
     app.router.add_post("/api/open-folder", open_folder)
+    app.router.add_post("/api/delete-result", delete_result)
+    app.router.add_post("/api/clear-history", clear_history)
     app.on_cleanup.append(cleanup)
     return app
 

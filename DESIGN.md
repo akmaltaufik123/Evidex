@@ -120,6 +120,15 @@ On mobile these follow the same reading order in one column. Start retains its
 association with the existing profile form. Backend and evidence behavior are unchanged.
 
 The optional custom evidence-name field is initially blank, labelled in both
-languages and limited to 120 characters. It uses existing form tokens and appears
-in the content step. New acquisitions include an Excel viewing copy; no old
+languages and limited to 120 characters. It uses existing form tokens and stays above the wizard, visible from the first step. New acquisitions include an Excel viewing copy; no old
 export is modified.
+
+## Version 0.2.2 usability update
+
+Custom result naming is visible above every wizard step. Result management has
+separate, plainly labelled delete-files and clear-history actions. Both ask for
+confirmation; deletion affects only the validated selected case, while clearing
+history writes a separate index and keeps evidence unchanged. Actions are blocked
+during acquisition. The six illustrated tutorial pages now have two short
+instructions each in Malay and English. Theme and typography remain Paper & Ink;
+self-review remains P4 H4 E4 S5 R5 V4.
