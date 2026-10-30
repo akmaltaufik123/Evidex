@@ -132,3 +132,13 @@ history writes a separate index and keeps evidence unchanged. Actions are blocke
 during acquisition. The six illustrated tutorial pages now have two short
 instructions each in Malay and English. Theme and typography remain Paper & Ink;
 self-review remains P4 H4 E4 S5 R5 V4.
+
+## Version 0.2.3 confirmation dialogs
+
+File deletion and history clearing use an in-page modal dialog rather than
+browser confirm popups. The dialog uses the existing palette, font and button
+tokens, labels the action and consequences, and shows the selected case as
+literal text. Cancel receives initial focus; Escape cancels; no request is sent
+until explicit acceptance. Native dialog semantics contain keyboard focus and
+restore it to the launching control. Both languages and narrow screens retain
+single-line controls. Self-review: P4 H4 E4 S5 R5 V4.

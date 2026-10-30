@@ -113,7 +113,10 @@
     "deleteConfirm": "Delete this ENTIRE result folder, including Excel, messages and media? This cannot be undone.",
     "deleted": "Result folder deleted.",
     "historyConfirm": "Clear the previous results list? Evidence files will stay on disk. New results will appear normally.",
-    "historyCleared": "History cleared. Evidence files remain on this computer."
+    "historyCleared": "History cleared. Evidence files remain on this computer.",
+    "deleteTitle": "Delete this result?",
+    "historyTitle": "Clear history?",
+    "confirmCancel": "Cancel"
   },
   "ms": {
     "workspace": "RUANG KERJA TEMPATAN",
@@ -229,7 +232,10 @@
     "deleteConfirm": "Padam SELURUH folder hasil ini, termasuk Excel, mesej dan media? Tindakan ini tidak boleh diundur.",
     "deleted": "Folder hasil dipadam.",
     "historyConfirm": "Kosongkan senarai hasil terdahulu? Fail bukti tidak dipadam. Hasil baharu akan muncul seperti biasa.",
-    "historyCleared": "Sejarah dikosongkan. Fail bukti masih ada dalam komputer."
+    "historyCleared": "Sejarah dikosongkan. Fail bukti masih ada dalam komputer.",
+    "deleteTitle": "Padam hasil ini?",
+    "historyTitle": "Kosongkan sejarah?",
+    "confirmCancel": "Batal"
   },
   "guide": [
     {

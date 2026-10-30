@@ -49,5 +49,15 @@ class Element{
   get('language').value='en';get('language').listeners.change();await new Promise(resolve=>setImmediate(resolve));assert.equal(get('api_hash').value,'a'.repeat(32));
   await get('view-messages').listeners.click();await new Promise(resolve=>setImmediate(resolve));assert.equal(get('viewer-dialog').open,true);
   assert.equal(get('message-list').children[0].children[1].textContent,'<script>not executable</script>');
+  assert(!html.includes('window.confirm'));
+  let confirmation=vm.runInContext("confirmAction('delete','<case-name>')",context);
+  assert.equal(get('confirm-dialog').open,true);
+  assert.equal(get('confirm-case').textContent,'<case-name>');
+  get('confirm-cancel').listeners.click();assert.equal(await confirmation,false);
+  confirmation=vm.runInContext("confirmAction('history')",context);
+  assert.equal(get('confirm-case').hidden,true);
+  get('confirm-accept').listeners.click();assert.equal(await confirmation,true);
+  confirmation=vm.runInContext("confirmAction('delete','case')",context);
+  get('confirm-dialog').listeners.cancel({preventDefault(){}});assert.equal(await confirmation,false);
   console.log('PASS: completion, folder action, both languages, six illustrated guide pages, wizard validation, credential preservation and text-only message viewer');
 })().catch(error=>{console.error(error);process.exitCode=1});

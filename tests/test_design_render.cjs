@@ -60,6 +60,15 @@ const out=path.join(scratch,'design-qa');fs.mkdirSync(out,{recursive:true});
    console.log('Rendering',language,width);await page.setViewportSize({width,height:900});
    await page.goto('http://127.0.0.1:8794');await page.selectOption('#language',language);await page.waitForFunction(()=>document.getElementById('saved-case').value);
    await audit(page,language+'/connect',width);
+   for(const kind of ['delete','history']){
+    await page.evaluate(kind=>{void confirmAction(kind,'EVIDEX_case_with_a_long_name_20261030_0123456789')},kind);
+    await audit(page,language+'/confirm-'+kind,width);
+    assert.equal(await page.evaluate(()=>document.activeElement.id),'confirm-cancel');
+    if(width===1280&&language==='ms'&&kind==='delete')await page.screenshot({path:path.join(out,'ms-delete-dialog.png')});
+    await page.keyboard.press('Escape');
+    assert.equal(await page.locator('#confirm-dialog').evaluate(el=>el.open),false);
+   }
+
    await page.fill('#api_id','1');await page.fill('#api_hash','a'.repeat(32));
    await page.click('#wizard-next');await page.fill('#phone','+10000000000');await page.fill('#target','@sample_fixture');await audit(page,language+'/source',width);
    await page.click('#wizard-next');await page.locator('input[name=media]').uncheck();await audit(page,language+'/content',width);

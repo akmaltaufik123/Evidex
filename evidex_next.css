@@ -149,3 +149,11 @@ dialog::backdrop { background: var(--color-overlay); }
 
 .name-field { padding-bottom: 16px; margin-bottom: 20px; border-bottom: 1px solid var(--color-rule); }
 .name-field label { margin-top: 0; }
+
+/* Confirmation belongs to the workspace, using the same tokens and controls. */
+.confirm-dialog { width: min(500px, calc(100% - 24px)); padding: 28px; }
+.confirm-dialog h2 { margin-bottom: 14px; font-size: 24px; }
+.confirm-dialog p { color: var(--color-ink); margin-bottom: 18px; }
+#confirm-case { overflow-wrap: anywhere; min-width: 0; padding: 12px; background: var(--color-well); border: 1px solid var(--color-rule); border-radius: var(--radius); font-family: var(--font-code); font-size: 13px; }
+.confirm-actions { justify-content: flex-end; margin-top: 24px; }
+@media(max-width: 375px) { .confirm-dialog { padding: 18px; } }
